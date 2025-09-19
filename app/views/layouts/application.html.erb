@@ -17,6 +17,10 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
@@ -26,41 +30,49 @@
 
   <body class="min-h-screen" data-controller="theme">
   <header class="topbar">
-    <div class="container-page h-14 flex items-center justify-between">
-      <a href="/" class="brand-logo text-base font-semibold tracking-tight bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent">
-        Adyen Recon
-      </a>
-      <nav class="nav items-center gap-1">
-        <%= link_to "Uploads", report_files_path, class: ["nav-link", ("active" if current_page?(report_files_path))] %>
-        <%= link_to "Exports", exports_path, class: ["nav-link", ("active" if current_page?(exports_path))] %>
-        <%= link_to "New Export", new_export_path, class: ["nav-link", ("active" if current_page?(new_export_path))] %>
-        <%= link_to "Mapping", edit_mapping_profile_path, class: ["nav-link", ("active" if current_page?(edit_mapping_profile_path))] %>
-        <%= link_to "Reconciliation", reconciliations_path, class: "px-3 py-2 rounded-xl hover:bg-slate-100 nav-link" %>
-        <button type="button" class="nav-link" data-action="theme#toggle" aria-label="Toggle theme">
-          <i class="fa fa-moon icon-sm" data-theme-target="icon"></i>
-        </button>
-      </nav>
+    <div class="container-page px-4">
+      <div class="topbar-inner">
+        <a href="/" class="brand-logo">
+          Adyen Recon
+        </a>
+        <nav class="nav">
+          <%= link_to "Uploads", report_files_path, class: ["nav-link", ("is-active" if current_page?(report_files_path))] %>
+          <%= link_to "Exports", exports_path, class: ["nav-link", ("is-active" if current_page?(exports_path))] %>
+          <%= link_to "New Export", new_export_path, class: ["nav-link", ("is-active" if current_page?(new_export_path))] %>
+          <%= link_to "Mapping", edit_mapping_profile_path, class: ["nav-link", ("is-active" if current_page?(edit_mapping_profile_path))] %>
+          <%= link_to "Reconciliation", reconciliations_path, class: ["nav-link", "nav-link--primary", ("is-active" if current_page?(reconciliations_path))] %>
+          <button type="button" class="nav-link nav-link--icon" data-action="theme#toggle" aria-label="Toggle theme">
+            <i class="fa fa-moon icon-sm" data-theme-target="icon"></i>
+          </button>
+        </nav>
+      </div>
     </div>
   </header>
 
   <div class="app-shell">
-    <div class="container-page px-4 pt-4 space-y-2">
-      <% if notice.present? %>
-        <div class="flash-ok"><%= notice %></div>
-      <% end %>
-      <% if alert.present? %>
-        <div class="flash-error"><%= alert %></div>
-      <% end %>
-    </div>
+    <main class="page-main">
+      <div class="page-main__inner container-page px-4">
+        <% if notice.present? || alert.present? %>
+          <div class="flash-stack">
+            <% if notice.present? %>
+              <div class="flash flash--ok"><%= notice %></div>
+            <% end %>
+            <% if alert.present? %>
+              <div class="flash flash--error"><%= alert %></div>
+            <% end %>
+          </div>
+        <% end %>
 
-    <main class="container-page px-4 py-6">
-      <%= yield %>
+        <%= yield %>
+      </div>
     </main>
 
     <footer class="site-footer">
-      <div class="container-page px-4 py-6 text-xs text-slate-500 flex items-center justify-between">
-        <span>© <%= Time.current.year %> Adyen Recon</span>
-        <span class="muted">Reconciliation Suite</span>
+      <div class="container-page px-4">
+        <div class="footer-inner">
+          <span>© <%= Time.current.year %> Adyen Recon</span>
+          <span class="muted">Reconciliation Suite</span>
+        </div>
       </div>
     </footer>
   </div>
