@@ -29,53 +29,49 @@
   </head>
 
   <body class="min-h-screen" data-controller="theme">
-  <header class="topbar">
-    <div class="container-page px-4">
-      <div class="topbar-inner">
-        <a href="/" class="brand-logo">
-          Adyen Recon
-        </a>
-        <nav class="nav">
-          <%= link_to "Uploads", report_files_path, class: ["nav-link", ("is-active" if current_page?(report_files_path))] %>
-          <%= link_to "Exports", exports_path, class: ["nav-link", ("is-active" if current_page?(exports_path))] %>
-          <%= link_to "New Export", new_export_path, class: ["nav-link", ("is-active" if current_page?(new_export_path))] %>
-          <%= link_to "Mapping", edit_mapping_profile_path, class: ["nav-link", ("is-active" if current_page?(edit_mapping_profile_path))] %>
-          <%= link_to "Reconciliation", reconciliations_path, class: ["nav-link", "nav-link--primary", ("is-active" if current_page?(reconciliations_path))] %>
-          <button type="button" class="nav-link nav-link--icon" data-action="theme#toggle" aria-label="Toggle theme">
-            <i class="fa fa-moon icon-sm" data-theme-target="icon"></i>
-          </button>
-        </nav>
-      </div>
-    </div>
-  </header>
-
-  <div class="app-shell">
-    <main class="page-main">
-      <div class="page-main__inner container-page px-4">
-        <% if notice.present? || alert.present? %>
-          <div class="flash-stack">
-            <% if notice.present? %>
-              <div class="flash flash--ok"><%= notice %></div>
-            <% end %>
-            <% if alert.present? %>
-              <div class="flash flash--error"><%= alert %></div>
-            <% end %>
+    <div class="min-h-screen flex flex-col app-surface">
+      <header class="topbar">
+        <div class="container-page">
+          <div class="brand-block">
+            <a href="/" class="brand-logo">Adyen Recon</a>
+            <span class="brand-tag">Reconciliation workspace</span>
           </div>
-        <% end %>
-
-        <%= yield %>
-      </div>
-    </main>
-
-    <footer class="site-footer">
-      <div class="container-page px-4">
-        <div class="footer-inner">
-          <span>© <%= Time.current.year %> Adyen Recon</span>
-          <span class="muted">Reconciliation Suite</span>
+          <nav class="nav" aria-label="Primary">
+            <%= link_to "Uploads", report_files_path, class: ["nav-link", ("active" if current_page?(report_files_path))] %>
+            <%= link_to "Exports", exports_path, class: ["nav-link", ("active" if current_page?(exports_path))] %>
+            <%= link_to "New export", new_export_path, class: ["nav-link", ("active" if current_page?(new_export_path))] %>
+            <%= link_to "Mapping", edit_mapping_profile_path, class: ["nav-link", ("active" if current_page?(edit_mapping_profile_path))] %>
+            <%= link_to "Reconciliation", reconciliations_path, class: ["nav-link", ("active" if current_page?(reconciliations_path))] %>
+            <button type="button" class="nav-link nav-link--icon" data-action="theme#toggle" aria-label="Toggle theme">
+              <i class="fa fa-moon icon-sm" data-theme-target="icon"></i>
+            </button>
+          </nav>
         </div>
-      </div>
-    </footer>
-  </div>
+      </header>
 
+      <div class="app-shell flex-1">
+        <div class="container-page pt-6 px-4 space-y-3">
+          <% if notice.present? %>
+            <div class="flash flash-ok"><%= notice %></div>
+          <% end %>
+          <% if alert.present? %>
+            <div class="flash flash-error"><%= alert %></div>
+          <% end %>
+        </div>
+
+        <main class="page container-page px-4 py-8">
+          <%= yield %>
+        </main>
+      </div>
+
+      <footer class="site-footer">
+        <div class="container-page px-4 py-6 text-xs">
+          <div class="footer-inner">
+            <span>© <%= Time.current.year %> Adyen Recon</span>
+            <span class="muted">Focused on matching the numbers.</span>
+          </div>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>

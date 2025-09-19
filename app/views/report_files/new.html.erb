@@ -1,6 +1,13 @@
 <!-- app/views/report_files/new.html.erb -->
-<h1 class="text-lg font-semibold mb-2">Upload report</h1>
-<p class="text-sm text-slate-600 mb-4">Just drop a <b>statement</b> or <b>accounting</b> CSV — we <span class="font-semibold text-[color:var(--primary)]">auto‑detect</span> the report kind and parse it for you.</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Upload report</h1>
+    <p class="page-subtitle">Drop a <strong>statement</strong> or <strong>accounting</strong> CSV and we’ll auto-detect, parse, and feed it into your reconciliation queue.</p>
+  </div>
+  <div class="page-actions">
+    <%= link_to "Back to uploads", report_files_path, class: "btn btn-ghost" %>
+  </div>
+</div>
 
 <% if @file.errors.any? %>
   <div class="callout mb-6">
@@ -22,7 +29,7 @@
       <div>
         <label class="label">Reported on (optional)</label>
         <%= f.date_field :reported_on, class: "input mt-1", placeholder: Date.current.to_s %>
-        <p class="text-[11px] text-slate-500 mt-1">Defaults to today if left blank.</p>
+        <p class="text-[11px] text-[color:var(--text-muted)] mt-1">Defaults to today if left blank.</p>
       </div>
       <div>
         <label class="label">Currency (optional)</label>
@@ -34,7 +41,7 @@
       </div>
 
       <% if @file.kind.present? && @file.errors[:kind].blank? %>
-        <div class="md:col-span-2 flex items-center gap-2 text-xs text-slate-600">
+        <div class="md:col-span-2 flex items-center gap-2 text-xs text-[color:var(--text-muted)]">
           <span class="badge badge-muted">Detected kind: <span class="ml-1 font-medium"><%= @file.kind %></span></span>
           <%= f.hidden_field :kind %>
         </div>
@@ -42,7 +49,7 @@
         <div class="md:col-span-2">
           <label class="label">Report kind (manual override)</label>
           <%= f.select :kind, ReportFile.kinds.keys.map { |k| [k.humanize, k] }, { include_blank: "Auto (detect)" }, class: "select mt-1" %>
-          <p class="text-[11px] text-slate-500 mt-1">Normally auto-detected from headers. Choose one if detection failed.</p>
+          <p class="text-[11px] text-[color:var(--text-muted)] mt-1">Normally auto-detected from headers. Choose one if detection failed.</p>
         </div>
       <% end %>
     </div>

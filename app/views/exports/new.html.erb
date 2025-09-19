@@ -1,6 +1,13 @@
 <!-- app/views/exports/new.html.erb -->
-<h1 class="text-lg font-semibold mb-2">New export</h1>
-<p class="text-sm text-slate-600 mb-6">Create a QuickBooks or Xero CSV for a date range.</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">New export</h1>
+    <p class="page-subtitle">Assemble a QuickBooks or Xero CSV for your reconciliation window using parsed Adyen data.</p>
+  </div>
+  <div class="page-actions">
+    <%= link_to "Back to exports", exports_path, class: "btn btn-ghost" %>
+  </div>
+</div>
 
 <%= form_with model: @export, url: exports_path, class: "space-y-6" do |f| %>
   <div class="card">
@@ -27,12 +34,10 @@
         <%= f.collection_select :mapping_profile_id, MappingProfile.all, :id, :name, {}, class: "select mt-1" %>
       </div>
 
-      <div class="md:col-span-2 rounded-xl border border-[color:var(--muted-brd)] bg-[color:var(--muted-bg)] px-4 py-3">
-        <div class="flex items-start gap-2">
-          <i class="fa-solid fa-circle-info icon icon-primary mt-1"></i>
-          <p class="text-sm text-slate-700">
-            Exports use amounts aggregated in <b>DailySummary</b> (minor units). Make sure your Statement/Accounting CSVs are parsed for the selected period.
-          </p>
+      <div class="md:col-span-2 callout">
+        <i class="fa-solid fa-circle-info icon icon-primary"></i>
+        <div>
+          <p class="text-sm">Exports use amounts aggregated in <strong>DailySummary</strong> (minor units). Make sure your statement and accounting CSVs are parsed for the selected period.</p>
         </div>
       </div>
 
@@ -48,7 +53,7 @@
   </div>
 
   <div class="flex items-center justify-end gap-3">
-    <%= link_to "Cancel", report_files_path, class: "btn btn-secondary" %>
+    <%= link_to "Cancel", exports_path, class: "btn btn-secondary" %>
     <%= f.submit "Queue export", class: "btn btn-primary" %>
   </div>
 <% end %>

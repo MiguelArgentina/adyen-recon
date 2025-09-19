@@ -1,11 +1,18 @@
 <div data-controller="export-poll" data-export-poll-status-value="<%= @export.status %>" data-export-poll-export-id-value="<%= @export.id %>">
-  <h1 class="text-lg font-semibold mb-2">Export</h1>
-  <p class="text-sm text-slate-600 mb-6">
-    <strong>Kind:</strong> <%= @export.kind.humanize %> ·
-    <strong>Status:</strong> <%= status_badge(@export.status) %> ·
-    <strong>Period:</strong> <%= @export.period_start %> – <%= @export.period_end %>
-    <% if @row_count %> · <strong>Rows:</strong> <%= @row_count %><% end %>
-  </p>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Export</h1>
+      <p class="page-subtitle">
+        <strong>Kind:</strong> <%= @export.kind.humanize %> ·
+        <strong>Status:</strong> <%= status_badge(@export.status) %> ·
+        <strong>Period:</strong> <%= @export.period_start %> – <%= @export.period_end %>
+        <% if @row_count %> · <strong>Rows:</strong> <%= @row_count %><% end %>
+      </p>
+    </div>
+    <div class="page-actions">
+      <%= link_to "All exports", exports_path, class: "btn btn-ghost" %>
+    </div>
+  </div>
 
   <% if @export.generated? %>
     <div class="card space-y-4">
@@ -13,15 +20,15 @@
         <div class="font-medium">Export generated</div>
         <%= link_to "Download CSV", download_export_path(@export), class: "btn btn-primary" %>
       </div>
-      <p class="text-sm text-slate-600">The CSV file is ready. Stored on server path below.</p>
-      <pre class="text-xs bg-white border border-[color:var(--surface-border)] rounded-xl p-3 overflow-x-auto"><%= @export.file_path %></pre>
+      <p class="text-sm text-[color:var(--text-muted)]">The CSV file is ready. Stored on the server path below.</p>
+      <pre class="text-xs bg-[color:var(--surface-elevated)] border border-[color:var(--surface-border)] rounded-xl p-4 overflow-x-auto"><%= @export.file_path %></pre>
     </div>
   <% elsif @export.failed? %>
-    <div class="card" style="background: var(--error-bg); border-color: var(--error-brd); color: var(--error-fg);">
-      <div class="font-medium mb-2">Generation failed</div>
-      <pre class="text-xs bg-white/70 border border-[color:var(--error-brd)] rounded-xl p-3 overflow-x-auto"><%= @export.error %></pre>
-      <div>
-        <%= link_to "Retry", new_export_path, class: "btn btn-secondary mt-2" %>
+    <div class="card" data-tone="muted">
+      <div class="font-medium mb-2 text-[color:var(--error-fg)]">Generation failed</div>
+      <pre class="text-xs bg-white/80 border border-[color:var(--error-brd)] rounded-xl p-4 overflow-x-auto text-[color:var(--error-fg)]"><%= @export.error %></pre>
+      <div class="mt-3">
+        <%= link_to "Queue new export", new_export_path, class: "btn btn-secondary" %>
       </div>
     </div>
   <% else %>
@@ -29,7 +36,7 @@
       <div class="flex items-start justify-between">
         <div>
           <div class="font-medium mb-1">Export queued or processing…</div>
-          <p class="text-sm text-slate-600">Refresh this page in a moment; it will update once generated.</p>
+          <p class="text-sm text-[color:var(--text-muted)]">This page refreshes automatically. It will update once the CSV has been generated.</p>
         </div>
         <%= link_to "Refresh", export_path(@export), class: "btn btn-ghost" %>
       </div>
@@ -43,9 +50,9 @@
     </div>
   <% end %>
 
-  <div class="mt-6 flex gap-3">
-    <%= link_to "All Exports", exports_path, class: "btn btn-secondary" %>
-    <%= link_to "New Export", new_export_path, class: "btn btn-ghost" %>
+  <div class="mt-6 flex gap-3 flex-wrap">
+    <%= link_to "All exports", exports_path, class: "btn btn-secondary" %>
+    <%= link_to "New export", new_export_path, class: "btn btn-primary" %>
     <%= link_to "Uploads", report_files_path, class: "btn btn-ghost" %>
   </div>
 </div>

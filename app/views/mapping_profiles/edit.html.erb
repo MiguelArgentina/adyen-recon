@@ -1,6 +1,13 @@
 <!-- app/views/mapping_profiles/edit.html.erb -->
-<h1 class="text-lg font-semibold mb-2">Mapping profile</h1>
-<p class="text-sm text-slate-600 mb-6">Set your GL (General Ledger) account codes used for exports.</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mapping profile</h1>
+    <p class="page-subtitle">Define the GL codes that power your export journals. These defaults are applied whenever you queue a new file.</p>
+  </div>
+  <div class="page-actions">
+    <%= link_to "Back", exports_path, class: "btn btn-ghost" %>
+  </div>
+</div>
 
 <%= form_with model: @profile, url: mapping_profile_path, method: :put, class: "space-y-6" do |f| %>
   <div class="card">
@@ -43,7 +50,7 @@
   </div>
 
   <div class="flex items-center justify-end gap-3">
-    <%= link_to "Cancel", report_files_path, class: "btn btn-secondary" %>
+    <%= link_to "Cancel", exports_path, class: "btn btn-secondary" %>
     <%= f.submit "Save", class: "btn btn-primary" %>
   </div>
 <% end %>
