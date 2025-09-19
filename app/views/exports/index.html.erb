@@ -1,19 +1,33 @@
 <!-- app/views/exports/index.html.erb -->
-<h1 class="text-lg font-semibold mb-4">Exports</h1>
-<div class="flex items-center justify-between mb-5">
-  <p class="text-sm text-slate-600 max-w-prose">Recent export jobs. Generated exports provide a download link. Queue a <%= link_to "new export", new_export_path, class: "text-[color:var(--primary)] hover:underline" %>.</p>
-  <%= link_to "New Export", new_export_path, class: "btn btn-primary" %>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Exports</h1>
+    <p class="page-subtitle">Queue QuickBooks or Xero-ready CSVs, track their generation, and download once complete.</p>
+  </div>
+  <div class="page-actions">
+    <%= link_to "New export", new_export_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="hero" data-tone="muted">
+  <div class="space-y-2">
+    <h2 class="text-base font-semibold">Build the journal you need</h2>
+    <p>Exports aggregate parsed statement and accounting data for the selected period. Configure your mapping profile once, then re-run whenever you close a reconciliation window.</p>
+  </div>
+  <div class="toolbar">
+    <%= link_to "Adjust mapping", edit_mapping_profile_path, class: "btn btn-secondary" %>
+  </div>
 </div>
 
 <% if @exports.blank? %>
-  <div class="card text-center">
-    <i class="fa-regular fa-file-export icon icon-muted text-xl"></i>
-    <h2 class="mt-2 font-medium">No exports yet</h2>
-    <p class="text-sm text-slate-600 mt-1">Create your first export to download summarized data.</p>
-    <div class="mt-4"><%= link_to "New Export", new_export_path, class: "btn btn-primary" %></div>
+  <div class="empty-state">
+    <i class="fa-regular fa-file-export"></i>
+    <h2 class="mt-4 text-lg font-semibold">No exports yet</h2>
+    <p class="text-sm text-[color:var(--text-muted)] mt-2">Queue your first export to generate a reconciliation-ready CSV.</p>
+    <div class="mt-5"><%= link_to "New export", new_export_path, class: "btn btn-primary" %></div>
   </div>
 <% else %>
-  <div class="card overflow-hidden p-0">
+  <div class="table-wrap">
     <table class="table">
       <thead>
         <tr>
@@ -33,10 +47,10 @@
           <td><%= ex.period_start %> – <%= ex.period_end %></td>
           <td><%= status_badge(ex.status) %></td>
           <td><%= ex.generated? && ex.bytes ? number_to_human_size(ex.bytes) : "—" %></td>
-          <td class="text-right space-x-2">
-            <%= link_to "View", export_path(ex), class: "text-[color:var(--primary)] hover:underline" %>
+          <td class="text-right space-x-3">
+            <%= link_to "View", export_path(ex), class: "link-accent" %>
             <% if ex.generated? && ex.file_path.present? && File.exist?(ex.file_path) %>
-              <%= link_to "Download", download_export_path(ex), class: "text-[color:var(--primary)] hover:underline" %>
+              <%= link_to "Download", download_export_path(ex), class: "link-accent" %>
             <% end %>
           </td>
         </tr>
@@ -47,8 +61,8 @@
 <% end %>
 
 <div class="mt-8 card">
-  <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Status legend</div>
-  <ul class="text-xs space-y-1">
+  <div class="text-xs uppercase tracking-wide text-[color:var(--text-muted)] mb-2">Status legend</div>
+  <ul class="text-xs space-y-1 text-[color:var(--text-muted)]">
     <li><span class="badge badge-success">Generated</span> Export finished successfully and is ready to download.</li>
     <li><span class="badge badge-error">Failed</span> Export generation encountered an error (see export page).</li>
     <li><span class="badge badge-muted">Queued</span> Waiting for background job processing.</li>

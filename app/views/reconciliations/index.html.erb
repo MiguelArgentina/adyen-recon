@@ -1,8 +1,29 @@
 <!-- app/views/reconciliations/index.html.erb -->
 
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Reconciliation</h1>
+    <p class="page-subtitle">Track how statement, accounting, and computed totals align for each day — and surface any variance quickly.</p>
+  </div>
+  <div class="page-actions">
+    <%= link_to "Uploads", report_files_path, class: "btn btn-ghost" %>
+  </div>
+</div>
+
+<div class="hero" data-tone="muted">
+  <div class="space-y-2">
+    <h2 class="text-base font-semibold">Filter and rebuild confidently</h2>
+    <p>Focus on the scope and currency that matter today. Once fresh files are parsed, rebuild the selected range to refresh the computed totals.</p>
+  </div>
+  <div class="toolbar text-sm text-[color:var(--text-muted)]">
+    <span class="badge badge-muted">Scope aware</span>
+    <span class="badge badge-muted">Variance highlights</span>
+  </div>
+</div>
+
 <!-- FILTER (GET) -->
-<div class="mb-4 card">
-  <div class="grid grid-cols-1 md:grid-cols-6 gap-3 p-4">
+<div class="mb-6 card">
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
     <%= form_with url: reconciliations_path, method: :get, local: true, class: "contents" do %>
       <div>
         <label class="label">Scope</label>
@@ -48,9 +69,8 @@
 
 
 <!-- TABLE -->
-<div class="card p-0">
-  <div class="table-wrap">
-    <table class="table">
+<div class="table-wrap">
+  <table class="table">
       <thead>
       <tr>
         <th>Date</th>
@@ -78,11 +98,10 @@
           <td class="text-right">
             <%= link_to "Details",
                         by_key_reconciliations_path(date: day.date, currency: day.currency, scope: day.account_scope),
-                        class: "text-[color:var(--primary)] hover:underline" %>
+                        class: "link-accent" %>
           </td>
         </tr>
       <% end %>
       </tbody>
-    </table>
-  </div>
+  </table>
 </div>

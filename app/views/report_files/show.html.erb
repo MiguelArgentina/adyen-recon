@@ -1,54 +1,73 @@
 <!-- app/views/report_files/show.html.erb -->
-<h1 class="text-lg font-semibold mb-2">Report details</h1>
-<p class="text-sm text-slate-600 mb-6">
-  <strong>Kind:</strong> <span class="capitalize"><%= @file.kind %></span> ·
-  <strong>Status:</strong> <%= status_badge(@file.status) %> ·
-  <strong>Reported on:</strong> <%= @file.reported_on %>
-</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Report details</h1>
+    <p class="page-subtitle">
+      <strong>Kind:</strong> <span class="capitalize"><%= @file.kind %></span> ·
+      <strong>Status:</strong> <%= status_badge(@file.status) %> ·
+      <strong>Reported on:</strong> <%= @file.reported_on %>
+    </p>
+  </div>
+  <div class="page-actions">
+    <%= link_to "Back to uploads", report_files_path, class: "btn btn-ghost" %>
+  </div>
+</div>
 
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">Original filename</div><div class="mt-1 font-mono text-sm break-all"><%= @file.original_filename || @file.file&.filename %></div></div>
-  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">File size</div><div class="mt-1"><%= number_to_human_size(@file.bytes || @file.file&.byte_size) %></div></div>
-  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">Rows created</div><div class="mt-1"><%= @stats[:rows_created] || (@file.statement? ? @file.statement_lines.count : @file.accounting_entries.count) %></div></div>
-  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">Rows skipped</div><div class="mt-1"><%= @stats[:rows_skipped] || 0 %></div></div>
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="label">Original filename</span>
+    <span class="value font-mono text-sm break-all"><%= @file.original_filename || @file.file&.filename %></span>
+  </div>
+  <div class="stat-card">
+    <span class="label">File size</span>
+    <span class="value"><%= number_to_human_size(@file.bytes || @file.file&.byte_size) %></span>
+  </div>
+  <div class="stat-card">
+    <span class="label">Rows created</span>
+    <span class="value"><%= @stats[:rows_created] || (@file.statement? ? @file.statement_lines.count : @file.accounting_entries.count) %></span>
+  </div>
+  <div class="stat-card">
+    <span class="label">Rows skipped</span>
+    <span class="value"><%= @stats[:rows_skipped] || 0 %></span>
+  </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
   <div class="card">
-    <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Currencies</div>
+    <div class="text-xs uppercase tracking-wide text-[color:var(--text-muted)] mb-1">Currencies</div>
     <% cur = Array(@stats[:currencies]) %>
     <% if cur.any? %>
       <div class="flex flex-wrap gap-2">
         <% cur.each do |c| %><span class="badge badge-muted"><%= c %></span><% end %>
       </div>
     <% else %>
-      <div class="text-sm text-slate-500">n/a</div>
+      <div class="text-sm text-[color:var(--text-muted)]">n/a</div>
     <% end %>
   </div>
   <div class="card">
-    <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Elapsed (ms)</div>
+    <div class="text-xs uppercase tracking-wide text-[color:var(--text-muted)] mb-1">Elapsed (ms)</div>
     <div class="text-sm"><%= @stats[:elapsed_ms] || '—' %></div>
   </div>
   <div class="card">
-    <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Parse errors sample</div>
+    <div class="text-xs uppercase tracking-wide text-[color:var(--text-muted)] mb-1">Parse errors sample</div>
     <% errs = Array(@stats[:row_errors_sample]) %>
     <% if errs.any? %>
       <ul class="text-xs space-y-1 max-h-32 overflow-auto">
         <% errs.each do |e| %><li class="text-[11px] leading-tight"><%= e %></li><% end %>
       </ul>
     <% else %>
-      <div class="text-sm text-slate-500">none</div>
+      <div class="text-sm text-[color:var(--text-muted)]">none</div>
     <% end %>
   </div>
 </div>
 
 <% if @sample_lines.any? %>
-  <div class="card overflow-hidden p-0">
-    <div class="px-4 py-3 flex items-center justify-between border-b border-[color:var(--surface-border)] bg-[color:var(--muted-bg)]">
+  <div class="card">
+    <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-semibold tracking-wide">Sample lines (<%= @sample_lines.size %>)</h2>
-      <span class="text-xs text-slate-500">Showing first 100 rows</span>
+      <span class="text-xs text-[color:var(--text-muted)]">Showing first 100 rows</span>
     </div>
-    <div class="overflow-x-auto">
+    <div class="table-wrap">
       <table class="table">
         <thead>
           <tr>
@@ -67,7 +86,7 @@
         <tbody>
         <% @sample_lines.each do |ln| %>
           <tr>
-            <td class="text-xs text-slate-500"><%= ln.line_no %></td>
+            <td class="text-xs text-[color:var(--text-muted)]"><%= ln.line_no %></td>
             <td><%= ln.occurred_on %></td>
             <td><%= ln.book_date %></td>
             <td><%= ln.respond_to?(:category) ? ln.category : '' %></td>

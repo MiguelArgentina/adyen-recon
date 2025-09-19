@@ -1,40 +1,61 @@
 <!-- app/views/report_files/index.html.erb -->
-<div class="flex items-center justify-between mb-5">
+<div class="page-header">
   <div>
-    <h1 class="text-lg font-semibold">Report uploads</h1>
-    <p class="text-sm text-slate-600">Upload <em><a href="https://docs.adyen.com/reporting/standard-reports/balance-platform-statement-report" target="_blank" rel="noopener" class="underline decoration-dotted hover:decoration-solid">statement</a></em> or <em><a href="https://docs.adyen.com/reporting/standard-reports/accounting-report" target="_blank" rel="noopener" class="underline decoration-dotted hover:decoration-solid">accounting</a></em> CSVs. We’ll parse and summarize them.</p>
+    <h1 class="page-title">Report uploads</h1>
+    <p class="page-subtitle">Drop Adyen <em>statement</em> or <em>accounting</em> CSVs and we will classify, parse, and prepare them for reconciliation in seconds.</p>
   </div>
-  <%= link_to "Upload report", new_report_file_path, class: "btn btn-primary" %>
+  <div class="page-actions">
+    <%= link_to "Upload report", new_report_file_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="hero" data-tone="muted">
+  <div class="space-y-2">
+    <h2 class="text-base font-semibold">Stay on top of payouts and ledger movements</h2>
+    <p>Upload the latest CSVs to enrich your reconciliation timeline. We auto-detect the file kind, keep track of currencies, and highlight any parse issues.</p>
+    <ul class="text-sm text-[color:var(--text-muted)] list-disc list-inside space-y-1">
+      <li><a href="https://docs.adyen.com/reporting/standard-reports/balance-platform-statement-report" target="_blank" rel="noopener" class="link-accent">Statement report</a> for cash movements.</li>
+      <li><a href="https://docs.adyen.com/reporting/standard-reports/accounting-report" target="_blank" rel="noopener" class="link-accent">Accounting report</a> for fee-level detail.</li>
+    </ul>
+  </div>
+  <div class="toolbar">
+    <%= link_to "Upload another file", new_report_file_path, class: "btn btn-secondary" %>
+  </div>
 </div>
 
 <% if @files.blank? %>
-  <div class="card text-center">
-    <i class="fa-regular fa-file icon icon-muted text-xl"></i>
-    <h2 class="mt-2 font-medium">No uploads yet</h2>
-    <p class="text-sm text-slate-600 mt-1">Upload your first CSV to get started.</p>
-    <div class="mt-4"><%= link_to "Upload report", new_report_file_path, class: "btn btn-primary" %></div>
+  <div class="empty-state">
+    <i class="fa-regular fa-file"></i>
+    <h2 class="mt-4 text-lg font-semibold">No uploads yet</h2>
+    <p class="text-sm text-[color:var(--text-muted)] mt-2">Bring in your first CSV to start building the reconciliation workspace.</p>
+    <div class="mt-5"><%= link_to "Upload report", new_report_file_path, class: "btn btn-primary" %></div>
   </div>
 <% else %>
-  <div class="card overflow-hidden p-0">
+  <div class="table-wrap">
     <table class="table">
       <thead>
-      <tr>
-        <th>When</th><th>Kind</th><th>Reported on</th><th>Currency</th><th>Status</th><th></th>
-      </tr>
+        <tr>
+          <th>Uploaded</th>
+          <th>Kind</th>
+          <th>Reported on</th>
+          <th>Currency</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
       </thead>
       <tbody>
-      <% @files.each do |f| %>
-        <tr>
-          <td><%= l f.created_at, format: :short %></td>
-          <td class="capitalize"><%= f.kind %></td>
-          <td><%= f.reported_on %></td>
-          <td><%= f.currency %></td>
-          <td><%= status_badge(f.status) %></td>
-          <td class="text-right">
-            <%= link_to "Details", report_file_path(f), class: "text-[color:var(--primary)] hover:underline" %>
-          </td>
-        </tr>
-      <% end %>
+        <% @files.each do |f| %>
+          <tr>
+            <td><%= l f.created_at, format: :short %></td>
+            <td class="capitalize"><%= f.kind %></td>
+            <td><%= f.reported_on %></td>
+            <td><%= f.currency %></td>
+            <td><%= status_badge(f.status) %></td>
+            <td class="text-right">
+              <%= link_to "Details", report_file_path(f), class: "link-accent" %>
+            </td>
+          </tr>
+        <% end %>
       </tbody>
     </table>
   </div>

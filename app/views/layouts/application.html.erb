@@ -25,45 +25,49 @@
   </head>
 
   <body class="min-h-screen" data-controller="theme">
-  <header class="topbar">
-    <div class="container-page h-14 flex items-center justify-between">
-      <a href="/" class="brand-logo text-base font-semibold tracking-tight bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent">
-        Adyen Recon
-      </a>
-      <nav class="nav items-center gap-1">
-        <%= link_to "Uploads", report_files_path, class: ["nav-link", ("active" if current_page?(report_files_path))] %>
-        <%= link_to "Exports", exports_path, class: ["nav-link", ("active" if current_page?(exports_path))] %>
-        <%= link_to "New Export", new_export_path, class: ["nav-link", ("active" if current_page?(new_export_path))] %>
-        <%= link_to "Mapping", edit_mapping_profile_path, class: ["nav-link", ("active" if current_page?(edit_mapping_profile_path))] %>
-        <%= link_to "Reconciliation", reconciliations_path, class: "px-3 py-2 rounded-xl hover:bg-slate-100 nav-link" %>
-        <button type="button" class="nav-link" data-action="theme#toggle" aria-label="Toggle theme">
-          <i class="fa fa-moon icon-sm" data-theme-target="icon"></i>
-        </button>
-      </nav>
-    </div>
-  </header>
+    <div class="min-h-screen flex flex-col app-surface">
+      <header class="topbar">
+        <div class="container-page">
+          <div class="brand-block">
+            <a href="/" class="brand-logo">Adyen Recon</a>
+            <span class="brand-tag">Reconciliation workspace</span>
+          </div>
+          <nav class="nav" aria-label="Primary">
+            <%= link_to "Uploads", report_files_path, class: ["nav-link", ("active" if current_page?(report_files_path))] %>
+            <%= link_to "Exports", exports_path, class: ["nav-link", ("active" if current_page?(exports_path))] %>
+            <%= link_to "New export", new_export_path, class: ["nav-link", ("active" if current_page?(new_export_path))] %>
+            <%= link_to "Mapping", edit_mapping_profile_path, class: ["nav-link", ("active" if current_page?(edit_mapping_profile_path))] %>
+            <%= link_to "Reconciliation", reconciliations_path, class: ["nav-link", ("active" if current_page?(reconciliations_path))] %>
+            <button type="button" class="nav-link nav-link--icon" data-action="theme#toggle" aria-label="Toggle theme">
+              <i class="fa fa-moon icon-sm" data-theme-target="icon"></i>
+            </button>
+          </nav>
+        </div>
+      </header>
 
-  <div class="app-shell">
-    <div class="container-page px-4 pt-4 space-y-2">
-      <% if notice.present? %>
-        <div class="flash-ok"><%= notice %></div>
-      <% end %>
-      <% if alert.present? %>
-        <div class="flash-error"><%= alert %></div>
-      <% end %>
-    </div>
+      <div class="app-shell flex-1">
+        <div class="container-page pt-6 px-4 space-y-3">
+          <% if notice.present? %>
+            <div class="flash flash-ok"><%= notice %></div>
+          <% end %>
+          <% if alert.present? %>
+            <div class="flash flash-error"><%= alert %></div>
+          <% end %>
+        </div>
 
-    <main class="container-page px-4 py-6">
-      <%= yield %>
-    </main>
-
-    <footer class="site-footer">
-      <div class="container-page px-4 py-6 text-xs text-slate-500 flex items-center justify-between">
-        <span>© <%= Time.current.year %> Adyen Recon</span>
-        <span class="muted">Reconciliation Suite</span>
+        <main class="page container-page px-4 py-8">
+          <%= yield %>
+        </main>
       </div>
-    </footer>
-  </div>
 
+      <footer class="site-footer">
+        <div class="container-page px-4 py-6 text-xs">
+          <div class="footer-inner">
+            <span>© <%= Time.current.year %> Adyen Recon</span>
+            <span class="muted">Focused on matching the numbers.</span>
+          </div>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>

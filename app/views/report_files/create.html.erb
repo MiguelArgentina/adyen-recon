@@ -1,4 +1,12 @@
-<div>
-  <h1 class="font-bold text-4xl">ReportFiles#create</h1>
-  <p>Find me in app/views/report_files/create.html.erb</p>
+<div class="space-y-6">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Upload queued</h1>
+      <p class="page-subtitle">We have received your file and will begin parsing it right away.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="text-sm text-[color:var(--text-muted)]">Return to <%= link_to "report uploads", report_files_path, class: "link-accent" %> to monitor the progress, or drop another CSV.</p>
+  </div>
 </div>
