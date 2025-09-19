@@ -1,0 +1,2 @@
+module MappingProfilesHelper
+end

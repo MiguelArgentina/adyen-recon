@@ -1,0 +1,56 @@
+<!-- app/views/exports/index.html.erb -->
+<h1 class="text-lg font-semibold mb-4">Exports</h1>
+<div class="flex items-center justify-between mb-5">
+  <p class="text-sm text-slate-600 max-w-prose">Recent export jobs. Generated exports provide a download link. Queue a <%= link_to "new export", new_export_path, class: "text-[color:var(--primary)] hover:underline" %>.</p>
+  <%= link_to "New Export", new_export_path, class: "btn btn-primary" %>
+</div>
+
+<% if @exports.blank? %>
+  <div class="card text-center">
+    <i class="fa-regular fa-file-export icon icon-muted text-xl"></i>
+    <h2 class="mt-2 font-medium">No exports yet</h2>
+    <p class="text-sm text-slate-600 mt-1">Create your first export to download summarized data.</p>
+    <div class="mt-4"><%= link_to "New Export", new_export_path, class: "btn btn-primary" %></div>
+  </div>
+<% else %>
+  <div class="card overflow-hidden p-0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Queued</th>
+          <th>Kind</th>
+          <th>Period</th>
+          <th>Status</th>
+          <th>Size</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      <% @exports.each do |ex| %>
+        <tr>
+          <td class="whitespace-nowrap"><%= l ex.created_at, format: :short %></td>
+          <td class="capitalize"><%= ex.kind %></td>
+          <td><%= ex.period_start %> – <%= ex.period_end %></td>
+          <td><%= status_badge(ex.status) %></td>
+          <td><%= ex.generated? && ex.bytes ? number_to_human_size(ex.bytes) : "—" %></td>
+          <td class="text-right space-x-2">
+            <%= link_to "View", export_path(ex), class: "text-[color:var(--primary)] hover:underline" %>
+            <% if ex.generated? && ex.file_path.present? && File.exist?(ex.file_path) %>
+              <%= link_to "Download", download_export_path(ex), class: "text-[color:var(--primary)] hover:underline" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<div class="mt-8 card">
+  <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Status legend</div>
+  <ul class="text-xs space-y-1">
+    <li><span class="badge badge-success">Generated</span> Export finished successfully and is ready to download.</li>
+    <li><span class="badge badge-error">Failed</span> Export generation encountered an error (see export page).</li>
+    <li><span class="badge badge-muted">Queued</span> Waiting for background job processing.</li>
+  </ul>
+</div>

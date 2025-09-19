@@ -1,0 +1,49 @@
+<!-- app/views/mapping_profiles/edit.html.erb -->
+<h1 class="text-lg font-semibold mb-2">Mapping profile</h1>
+<p class="text-sm text-slate-600 mb-6">Set your GL (General Ledger) account codes used for exports.</p>
+
+<%= form_with model: @profile, url: mapping_profile_path, method: :put, class: "space-y-6" do |f| %>
+  <div class="card">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <% infos = {
+        name: "Friendly label for this preset.",
+        revenue_gl: "Sales/revenue account (credit), e.g. 4000.",
+        refunds_gl: "Refunds/returns (debit), e.g. 4050.",
+        chargebacks_gl: "Chargebacks/dispute losses (debit), e.g. 4060.",
+        fees_gl: "Processing fees & payment costs (debit), e.g. 6200.",
+        payout_fees_gl: "Cashout/bank transfer fees (debit), e.g. 6201.",
+        cash_account_gl: "Your bank/cash account (optional for manual journal).",
+        clearing_account_gl: "Temporary asset to balance daily journals, e.g. 1100."
+      } %>
+
+      <% def field_row(f, field, label, info)
+           raw(%Q(
+            <div>
+              <div class="flex items-center gap-2">
+                <label class="label">#{label}</label>
+                <span class="tooltip" tabindex="0">
+                  <i class="fa-solid fa-circle-info icon icon-muted"></i>
+                  <span class="tip">#{ERB::Util.html_escape(info)}</span>
+                </span>
+              </div>
+              #{f.text_field(field, class: "input mt-1")}
+            </div>
+           ))
+         end %>
+
+      <%= field_row(f, :name, "Name", infos[:name]) %>
+      <%= field_row(f, :revenue_gl, "Revenue GL", infos[:revenue_gl]) %>
+      <%= field_row(f, :refunds_gl, "Refunds GL", infos[:refunds_gl]) %>
+      <%= field_row(f, :chargebacks_gl, "Chargebacks GL", infos[:chargebacks_gl]) %>
+      <%= field_row(f, :fees_gl, "Fees GL", infos[:fees_gl]) %>
+      <%= field_row(f, :payout_fees_gl, "Payout fees GL", infos[:payout_fees_gl]) %>
+      <%= field_row(f, :cash_account_gl, "Cash account GL", infos[:cash_account_gl]) %>
+      <%= field_row(f, :clearing_account_gl, "Clearing account GL", infos[:clearing_account_gl]) %>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3">
+    <%= link_to "Cancel", report_files_path, class: "btn btn-secondary" %>
+    <%= f.submit "Save", class: "btn btn-primary" %>
+  </div>
+<% end %>

@@ -1,0 +1,93 @@
+<!-- app/views/report_files/show.html.erb -->
+<h1 class="text-lg font-semibold mb-2">Report details</h1>
+<p class="text-sm text-slate-600 mb-6">
+  <strong>Kind:</strong> <span class="capitalize"><%= @file.kind %></span> ·
+  <strong>Status:</strong> <%= status_badge(@file.status) %> ·
+  <strong>Reported on:</strong> <%= @file.reported_on %>
+</p>
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">Original filename</div><div class="mt-1 font-mono text-sm break-all"><%= @file.original_filename || @file.file&.filename %></div></div>
+  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">File size</div><div class="mt-1"><%= number_to_human_size(@file.bytes || @file.file&.byte_size) %></div></div>
+  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">Rows created</div><div class="mt-1"><%= @stats[:rows_created] || (@file.statement? ? @file.statement_lines.count : @file.accounting_entries.count) %></div></div>
+  <div class="card"><div class="text-xs uppercase tracking-wide text-slate-500">Rows skipped</div><div class="mt-1"><%= @stats[:rows_skipped] || 0 %></div></div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+  <div class="card">
+    <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Currencies</div>
+    <% cur = Array(@stats[:currencies]) %>
+    <% if cur.any? %>
+      <div class="flex flex-wrap gap-2">
+        <% cur.each do |c| %><span class="badge badge-muted"><%= c %></span><% end %>
+      </div>
+    <% else %>
+      <div class="text-sm text-slate-500">n/a</div>
+    <% end %>
+  </div>
+  <div class="card">
+    <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Elapsed (ms)</div>
+    <div class="text-sm"><%= @stats[:elapsed_ms] || '—' %></div>
+  </div>
+  <div class="card">
+    <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Parse errors sample</div>
+    <% errs = Array(@stats[:row_errors_sample]) %>
+    <% if errs.any? %>
+      <ul class="text-xs space-y-1 max-h-32 overflow-auto">
+        <% errs.each do |e| %><li class="text-[11px] leading-tight"><%= e %></li><% end %>
+      </ul>
+    <% else %>
+      <div class="text-sm text-slate-500">none</div>
+    <% end %>
+  </div>
+</div>
+
+<% if @sample_lines.any? %>
+  <div class="card overflow-hidden p-0">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-[color:var(--surface-border)] bg-[color:var(--muted-bg)]">
+      <h2 class="text-sm font-semibold tracking-wide">Sample lines (<%= @sample_lines.size %>)</h2>
+      <span class="text-xs text-slate-500">Showing first 100 rows</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Book</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th>Currency</th>
+            <th>Reference</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+        <% @sample_lines.each do |ln| %>
+          <tr>
+            <td class="text-xs text-slate-500"><%= ln.line_no %></td>
+            <td><%= ln.occurred_on %></td>
+            <td><%= ln.book_date %></td>
+            <td><%= ln.respond_to?(:category) ? ln.category : '' %></td>
+            <td><%= ln.respond_to?(:type) ? ln.type : '' %></td>
+            <td><%= ln.respond_to?(:status) ? ln.status : '' %></td>
+            <td><%= minor_to_amount(ln.try(:amount_minor), ln.try(:currency)) %></td>
+            <td><%= ln.try(:currency) %></td>
+            <td class="truncate max-w-[10rem]" title="<%= ln.try(:reference) %>"><%= ln.try(:reference) %></td>
+            <td class="truncate max-w-[14rem]" title="<%= ln.try(:description) %>"><%= ln.try(:description) %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% else %>
+  <div class="callout mb-6"><i class="fa fa-info-circle icon icon-primary"></i><div>No rows parsed yet.</div></div>
+<% end %>
+
+<div class="flex items-center gap-3 mt-8">
+  <%= link_to "Back to uploads", report_files_path, class: "btn btn-secondary" %>
+  <%= link_to "Upload another", new_report_file_path, class: "btn btn-primary" %>
+</div>

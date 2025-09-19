@@ -1,0 +1,88 @@
+<!-- app/views/reconciliations/index.html.erb -->
+
+<!-- FILTER (GET) -->
+<div class="mb-4 card">
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-3 p-4">
+    <%= form_with url: reconciliations_path, method: :get, local: true, class: "contents" do %>
+      <div>
+        <label class="label">Scope</label>
+        <%= select_tag :scope,
+                       options_for_select([["(nil)", ""]] + @available_scopes_nonnil.map { |s| [s, s] }, params[:scope]),
+                       class: "select" %>
+      </div>
+
+      <div>
+        <label class="label">Currency</label>
+        <%= select_tag :currency,
+                       options_for_select([["(all)", ""]] + @available_currencies.map { |c| [c, c] }, params[:currency]),
+                       class: "select" %>
+      </div>
+
+      <div>
+        <label class="label">From</label>
+        <%= date_field_tag :from, (@date_from || params[:from]), class: "input" %>
+      </div>
+
+      <div>
+        <label class="label">To</label>
+        <%= date_field_tag :to, (@date_to || params[:to]), class: "input" %>
+      </div>
+
+      <div class="md:col-span-2 flex items-end">
+        <%= submit_tag "Apply filters", class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+
+    <!-- REBUILD (POST) — separate form, not nested -->
+    <%= form_with url: run_reconciliations_path, method: :post, data: { turbo: false }, class: "md:col-span-2 flex items-end justify-end" do %>
+      <%= hidden_field_tag :scope,    params[:scope] %>
+      <%= hidden_field_tag :currency, params[:currency].presence || "USD" %>
+      <%= hidden_field_tag :from,     (@date_from || params[:from]) %>
+      <%= hidden_field_tag :to,       (@date_to   || params[:to]) %>
+      <%= submit_tag "Rebuild selected range",
+                     class: "btn btn-primary",
+                     disabled: (@date_from.blank? || @date_to.blank?) %>
+    <% end %>
+  </div>
+</div>
+
+
+<!-- TABLE -->
+<div class="card p-0">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+      <tr>
+        <th>Date</th>
+        <th>Statement</th>
+        <th>Accounting</th>
+        <th>Computed</th>
+        <th>Variance</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @days.each do |day| %>
+        <tr>
+          <td><%= day.date %></td>
+          <td><%= money_minor(day.statement_total_cents, day.currency) %></td>
+          <td><%= money_minor(day.accounting_total_cents, day.currency) %></td>
+          <td><%= money_minor(day.computed_total_cents, day.currency) %></td>
+          <td><%= money_minor(day.variance_cents, day.currency) %></td>
+          <td>
+          <span class="badge <%= { "ok"=>"badge-success", "warn"=>"badge-muted", "error"=>"badge-error" }[day.status] %>">
+            <%= day.status %>
+          </span>
+          </td>
+          <td class="text-right">
+            <%= link_to "Details",
+                        by_key_reconciliations_path(date: day.date, currency: day.currency, scope: day.account_scope),
+                        class: "text-[color:var(--primary)] hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

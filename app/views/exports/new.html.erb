@@ -1,0 +1,54 @@
+<!-- app/views/exports/new.html.erb -->
+<h1 class="text-lg font-semibold mb-2">New export</h1>
+<p class="text-sm text-slate-600 mb-6">Create a QuickBooks or Xero CSV for a date range.</p>
+
+<%= form_with model: @export, url: exports_path, class: "space-y-6" do |f| %>
+  <div class="card">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <div class="flex items-center gap-2">
+          <label class="label">Kind</label>
+          <span class="tooltip" tabindex="0">
+            <i class="fa-solid fa-circle-info icon icon-muted"></i>
+            <span class="tip">Choose the export format to generate.</span>
+          </span>
+        </div>
+        <%= f.select :kind, ExportFile.kinds.keys.map { |k| [k.humanize, k] }, {}, class: "select mt-1" %>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-2">
+          <label class="label">Mapping profile</label>
+          <span class="tooltip" tabindex="0">
+            <i class="fa-solid fa-circle-info icon icon-muted"></i>
+            <span class="tip">GL account codes used to build the journal.</span>
+          </span>
+        </div>
+        <%= f.collection_select :mapping_profile_id, MappingProfile.all, :id, :name, {}, class: "select mt-1" %>
+      </div>
+
+      <div class="md:col-span-2 rounded-xl border border-[color:var(--muted-brd)] bg-[color:var(--muted-bg)] px-4 py-3">
+        <div class="flex items-start gap-2">
+          <i class="fa-solid fa-circle-info icon icon-primary mt-1"></i>
+          <p class="text-sm text-slate-700">
+            Exports use amounts aggregated in <b>DailySummary</b> (minor units). Make sure your Statement/Accounting CSVs are parsed for the selected period.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label class="label">Period start</label>
+        <%= f.date_field :period_start, class: "input mt-1" %>
+      </div>
+      <div>
+        <label class="label">Period end</label>
+        <%= f.date_field :period_end, class: "input mt-1" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3">
+    <%= link_to "Cancel", report_files_path, class: "btn btn-secondary" %>
+    <%= f.submit "Queue export", class: "btn btn-primary" %>
+  </div>
+<% end %>

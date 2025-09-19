@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Adyen Platform Recon" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  </head>
+
+  <body class="min-h-screen" data-controller="theme">
+  <header class="topbar">
+    <div class="container-page h-14 flex items-center justify-between">
+      <a href="/" class="brand-logo text-base font-semibold tracking-tight bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent">
+        Adyen Recon
+      </a>
+      <nav class="nav items-center gap-1">
+        <%= link_to "Uploads", report_files_path, class: ["nav-link", ("active" if current_page?(report_files_path))] %>
+        <%= link_to "Exports", exports_path, class: ["nav-link", ("active" if current_page?(exports_path))] %>
+        <%= link_to "New Export", new_export_path, class: ["nav-link", ("active" if current_page?(new_export_path))] %>
+        <%= link_to "Mapping", edit_mapping_profile_path, class: ["nav-link", ("active" if current_page?(edit_mapping_profile_path))] %>
+        <%= link_to "Reconciliation", reconciliations_path, class: "px-3 py-2 rounded-xl hover:bg-slate-100 nav-link" %>
+        <button type="button" class="nav-link" data-action="theme#toggle" aria-label="Toggle theme">
+          <i class="fa fa-moon icon-sm" data-theme-target="icon"></i>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <div class="container-page px-4 pt-4 space-y-2">
+      <% if notice.present? %>
+        <div class="flash-ok"><%= notice %></div>
+      <% end %>
+      <% if alert.present? %>
+        <div class="flash-error"><%= alert %></div>
+      <% end %>
+    </div>
+
+    <main class="container-page px-4 py-6">
+      <%= yield %>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container-page px-4 py-6 text-xs text-slate-500 flex items-center justify-between">
+        <span>© <%= Time.current.year %> Adyen Recon</span>
+        <span class="muted">Reconciliation Suite</span>
+      </div>
+    </footer>
+  </div>
+
+  </body>
+</html>

@@ -1,0 +1,154 @@
+### Sources Diagnose
+environment: development
+rails_version: 8.0.2.1
+db_adapter: postgresql
+
+=== ReportFile ===
+model_defined: true
+table: report_files
+columns (name:type:null:default):
+  - id: bigint : false : nil
+  - kind: integer : true : nil
+  - status: integer : true : nil
+  - reported_on: date : true : nil
+  - account_code: character varying : true : nil
+  - account_id: character varying : true : nil
+  - currency: character varying : true : nil
+  - original_filename: character varying : true : nil
+  - bytes: bigint : true : nil
+  - checksum: character varying : true : nil
+  - error: text : true : nil
+  - adyen_credential_id: bigint : false : nil
+  - created_at: timestamp(6) without time zone : false : nil
+  - updated_at: timestamp(6) without time zone : false : nil
+  - settings: jsonb : false : "{}"
+indexes:
+  - index_report_files_on_adyen_credential_id  -> (adyen_credential_id)
+  - index_report_files_on_kind_and_status_and_reported_on  -> (kind, status, reported_on)
+  - index_report_files_on_settings  -> (settings)
+guessed_columns:
+  id: "id"
+  fk_report_file_id: nil
+  occurred_on: nil
+  currency: "currency"
+  amount_cents: nil
+  amount_decimal: nil
+  category: nil
+  account_scope: nil
+  kind: "kind"
+  reported_on: "reported_on"
+sample_rows (5):
+  1. {"id":1,"reported_on":"2025-09-15","currency":"","kind":"statement","created_at":"2025-09-15T22:34:00.644Z","updated_at":"2025-09-15T22:34:01.146Z"}
+  2. {"id":2,"reported_on":"2025-09-15","currency":"","kind":"accounting","created_at":"2025-09-15T22:34:10.147Z","updated_at":"2025-09-15T22:34:10.636Z"}
+  3. {"id":3,"reported_on":"2025-09-15","currency":"","kind":"statement","created_at":"2025-09-15T22:44:37.305Z","updated_at":"2025-09-15T22:44:37.845Z"}
+  4. {"id":4,"reported_on":"2025-09-15","currency":"","kind":"accounting","created_at":"2025-09-15T22:44:47.677Z","updated_at":"2025-09-15T22:44:48.155Z"}
+  5. {"id":5,"reported_on":"2025-09-15","currency":"","kind":"statement","created_at":"2025-09-15T22:51:01.138Z","updated_at":"2025-09-15T22:51:01.793Z"}
+distinct_kinds(<=15): ["statement", "accounting"]
+
+=== StatementLine ===
+model_defined: true
+table: statement_lines
+columns (name:type:null:default):
+  - id: bigint : false : nil
+  - report_file_id: bigint : false : nil
+  - line_no: integer : true : nil
+  - occurred_on: date : true : nil
+  - book_date: date : true : nil
+  - category: character varying : true : nil
+  - type: character varying : true : nil
+  - status: character varying : true : nil
+  - amount_minor: bigint : true : nil
+  - currency: character varying : true : nil
+  - balance_before_minor: bigint : true : nil
+  - balance_after_minor: bigint : true : nil
+  - balance_account_id: character varying : true : nil
+  - balance_account_code: character varying : true : nil
+  - reference: character varying : true : nil
+  - transfer_id: character varying : true : nil
+  - payout_id: character varying : true : nil
+  - description: character varying : true : nil
+  - counterparty: character varying : true : nil
+  - created_at: timestamp(6) without time zone : false : nil
+  - updated_at: timestamp(6) without time zone : false : nil
+indexes:
+  - idx_on_book_date_category_type_payout_id_transfer_i_feb235ad80  -> (book_date, category, type, payout_id, transfer_id)
+  - index_statement_lines_on_report_file_id  -> (report_file_id)
+guessed_columns:
+  id: "id"
+  fk_report_file_id: "report_file_id"
+  occurred_on: "occurred_on"
+  currency: "currency"
+  amount_cents: "amount_minor"
+  amount_decimal: nil
+  category: "category"
+  account_scope: nil
+  kind: "type"
+  reported_on: nil
+sample_rows (5):
+  1. {"id":1,"report_file_id":1,"occurred_on":"2025-08-01","currency":"USD","amount_minor":null,"category":null,"type":null,"created_at":"2025-09-15T22:34:00.722Z","updated_at":"2025-09-15T22:34:00.722Z"}
+  2. {"id":2,"report_file_id":1,"occurred_on":"2025-08-02","currency":"USD","amount_minor":null,"category":null,"type":null,"created_at":"2025-09-15T22:34:00.727Z","updated_at":"2025-09-15T22:34:00.727Z"}
+  3. {"id":3,"report_file_id":1,"occurred_on":"2025-08-01","currency":"CAD","amount_minor":null,"category":null,"type":null,"created_at":"2025-09-15T22:34:00.728Z","updated_at":"2025-09-15T22:34:00.728Z"}
+  4. {"id":4,"report_file_id":1,"occurred_on":"2025-08-02","currency":"CAD","amount_minor":null,"category":null,"type":null,"created_at":"2025-09-15T22:34:00.730Z","updated_at":"2025-09-15T22:34:00.730Z"}
+  5. {"id":5,"report_file_id":1,"occurred_on":"2025-08-01","currency":"USD","amount_minor":null,"category":null,"type":null,"created_at":"2025-09-15T22:34:00.732Z","updated_at":"2025-09-15T22:34:00.732Z"}
+distinct_kinds(<=15): ["bankTransfer", "banktransfer", "capture", "internalTransfer", "internaltransfer", nil]
+distinct_categories(<=15): ["bank", "internal", "platformPayment", "platformpayment", nil]
+
+=== AccountingEntry ===
+model_defined: true
+table: accounting_entries
+columns (name:type:null:default):
+  - id: bigint : false : nil
+  - report_file_id: bigint : false : nil
+  - line_no: integer : true : nil
+  - occurred_on: date : true : nil
+  - book_date: date : true : nil
+  - direction: character varying : true : nil
+  - category: character varying : true : nil
+  - type: character varying : true : nil
+  - subcategory: character varying : true : nil
+  - status: character varying : true : nil
+  - amount_minor: bigint : true : nil
+  - currency: character varying : true : nil
+  - balance_account_id: character varying : true : nil
+  - balance_account_code: character varying : true : nil
+  - psp_reference: character varying : true : nil
+  - transfer_id: character varying : true : nil
+  - payout_id: character varying : true : nil
+  - reference: character varying : true : nil
+  - description: character varying : true : nil
+  - created_at: timestamp(6) without time zone : false : nil
+  - updated_at: timestamp(6) without time zone : false : nil
+indexes:
+  - idx_on_book_date_category_type_transfer_id_payout_i_10c693b29d  -> (book_date, category, type, transfer_id, payout_id)
+  - index_accounting_entries_on_report_file_id  -> (report_file_id)
+guessed_columns:
+  id: "id"
+  fk_report_file_id: "report_file_id"
+  occurred_on: "occurred_on"
+  currency: "currency"
+  amount_cents: "amount_minor"
+  amount_decimal: nil
+  category: "category"
+  account_scope: nil
+  kind: "type"
+  reported_on: nil
+sample_rows (5):
+  1. {"id":1,"report_file_id":2,"occurred_on":"2025-08-01","currency":"USD","amount_minor":-941,"category":"bank","type":"bankTransfer","created_at":"2025-09-15T22:34:10.203Z","updated_at":"2025-09-15T22:34:10.203Z"}
+  2. {"id":2,"report_file_id":2,"occurred_on":"2025-08-01","currency":"USD","amount_minor":-941,"category":"bank","type":"bankTransfer","created_at":"2025-09-15T22:34:10.208Z","updated_at":"2025-09-15T22:34:10.208Z"}
+  3. {"id":3,"report_file_id":2,"occurred_on":"2025-08-01","currency":"USD","amount_minor":-941,"category":"bank","type":"bankTransfer","created_at":"2025-09-15T22:34:10.211Z","updated_at":"2025-09-15T22:34:10.211Z"}
+  4. {"id":4,"report_file_id":2,"occurred_on":"2025-08-01","currency":"USD","amount_minor":31,"category":"platformPayment","type":"capture","created_at":"2025-09-15T22:34:10.213Z","updated_at":"2025-09-15T22:34:10.213Z"}
+  5. {"id":5,"report_file_id":2,"occurred_on":"2025-08-01","currency":"USD","amount_minor":31,"category":"platformPayment","type":"capture","created_at":"2025-09-15T22:34:10.215Z","updated_at":"2025-09-15T22:34:10.215Z"}
+distinct_kinds(<=15): ["bankTransfer", "banktransfer", "capture", "internalTransfer", "internaltransfer"]
+distinct_categories(<=15): ["bank", "internal", "platformPayment", "platformpayment"]
+
+=== AdyenPayout ===
+model_defined: false
+
+=== Relationships sanity ===
+StatementLine -> ReportFile FK: "report_file_id"
+  orphans_with_fk_set: 0
+AccountingEntry -> ReportFile FK: "report_file_id"
+  orphans_with_fk_set: 0
+
+=== Capabilities JSON ===
+{"environment":"development","rails_version":"8.0.2.1","db_adapter":"postgresql","targets":{"ReportFile":{"table":"report_files","columns":[{"name":"id","type":"bigint","null":false,"default":null},{"name":"kind","type":"integer","null":true,"default":null},{"name":"status","type":"integer","null":true,"default":null},{"name":"reported_on","type":"date","null":true,"default":null},{"name":"account_code","type":"character varying","null":true,"default":null},{"name":"account_id","type":"character varying","null":true,"default":null},{"name":"currency","type":"character varying","null":true,"default":null},{"name":"original_filename","type":"character varying","null":true,"default":null},{"name":"bytes","type":"bigint","null":true,"default":null},{"name":"checksum","type":"character varying","null":true,"default":null},{"name":"error","type":"text","null":true,"default":null},{"name":"adyen_credential_id","type":"bigint","null":false,"default":null},{"name":"created_at","type":"timestamp(6) without time zone","null":false,"default":null},{"name":"updated_at","type":"timestamp(6) without time zone","null":false,"default":null},{"name":"settings","type":"jsonb","null":false,"default":"{}"}],"indexes":[{"name":"index_report_files_on_adyen_credential_id","unique":false,"columns":["adyen_credential_id"]},{"name":"index_report_files_on_kind_and_status_and_reported_on","unique":false,"columns":["kind","status","reported_on"]},{"name":"index_report_files_on_settings","unique":false,"columns":["settings"]}],"guesses":{"id":"id","fk_report_file_id":null,"occurred_on":null,"currency":"currency","amount_cents":null,"amount_decimal":null,"category":null,"account_scope":null,"kind":"kind","reported_on":"reported_on"}},"StatementLine":{"table":"statement_lines","columns":[{"name":"id","type":"bigint","null":false,"default":null},{"name":"report_file_id","type":"bigint","null":false,"default":null},{"name":"line_no","type":"integer","null":true,"default":null},{"name":"occurred_on","type":"date","null":true,"default":null},{"name":"book_date","type":"date","null":true,"default":null},{"name":"category","type":"character varying","null":true,"default":null},{"name":"type","type":"character varying","null":true,"default":null},{"name":"status","type":"character varying","null":true,"default":null},{"name":"amount_minor","type":"bigint","null":true,"default":null},{"name":"currency","type":"character varying","null":true,"default":null},{"name":"balance_before_minor","type":"bigint","null":true,"default":null},{"name":"balance_after_minor","type":"bigint","null":true,"default":null},{"name":"balance_account_id","type":"character varying","null":true,"default":null},{"name":"balance_account_code","type":"character varying","null":true,"default":null},{"name":"reference","type":"character varying","null":true,"default":null},{"name":"transfer_id","type":"character varying","null":true,"default":null},{"name":"payout_id","type":"character varying","null":true,"default":null},{"name":"description","type":"character varying","null":true,"default":null},{"name":"counterparty","type":"character varying","null":true,"default":null},{"name":"created_at","type":"timestamp(6) without time zone","null":false,"default":null},{"name":"updated_at","type":"timestamp(6) without time zone","null":false,"default":null}],"indexes":[{"name":"idx_on_book_date_category_type_payout_id_transfer_i_feb235ad80","unique":false,"columns":["book_date","category","type","payout_id","transfer_id"]},{"name":"index_statement_lines_on_report_file_id","unique":false,"columns":["report_file_id"]}],"guesses":{"id":"id","fk_report_file_id":"report_file_id","occurred_on":"occurred_on","currency":"currency","amount_cents":"amount_minor","amount_decimal":null,"category":"category","account_scope":null,"kind":"type","reported_on":null}},"AccountingEntry":{"table":"accounting_entries","columns":[{"name":"id","type":"bigint","null":false,"default":null},{"name":"report_file_id","type":"bigint","null":false,"default":null},{"name":"line_no","type":"integer","null":true,"default":null},{"name":"occurred_on","type":"date","null":true,"default":null},{"name":"book_date","type":"date","null":true,"default":null},{"name":"direction","type":"character varying","null":true,"default":null},{"name":"category","type":"character varying","null":true,"default":null},{"name":"type","type":"character varying","null":true,"default":null},{"name":"subcategory","type":"character varying","null":true,"default":null},{"name":"status","type":"character varying","null":true,"default":null},{"name":"amount_minor","type":"bigint","null":true,"default":null},{"name":"currency","type":"character varying","null":true,"default":null},{"name":"balance_account_id","type":"character varying","null":true,"default":null},{"name":"balance_account_code","type":"character varying","null":true,"default":null},{"name":"psp_reference","type":"character varying","null":true,"default":null},{"name":"transfer_id","type":"character varying","null":true,"default":null},{"name":"payout_id","type":"character varying","null":true,"default":null},{"name":"reference","type":"character varying","null":true,"default":null},{"name":"description","type":"character varying","null":true,"default":null},{"name":"created_at","type":"timestamp(6) without time zone","null":false,"default":null},{"name":"updated_at","type":"timestamp(6) without time zone","null":false,"default":null}],"indexes":[{"name":"idx_on_book_date_category_type_transfer_id_payout_i_10c693b29d","unique":false,"columns":["book_date","category","type","transfer_id","payout_id"]},{"name":"index_accounting_entries_on_report_file_id","unique":false,"columns":["report_file_id"]}],"guesses":{"id":"id","fk_report_file_id":"report_file_id","occurred_on":"occurred_on","currency":"currency","amount_cents":"amount_minor","amount_decimal":null,"category":"category","account_scope":null,"kind":"type","reported_on":null}}}}

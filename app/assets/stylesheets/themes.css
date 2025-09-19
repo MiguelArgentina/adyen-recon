@@ -1,0 +1,46 @@
+/* Using application.css bundle; application.tailwind.css imports tailwind + themes + ui */
+/* Premium Admin Design Tokens: Light (:root) + Dark ([data-theme="ink"]) */
+:root {
+  /* Neutrals */
+  --bg: #f5f7fa; /* page background */
+  --surface: #ffffff; /* cards, panels */
+  --surface-border: #e0e6ee; /* separators */
+  --text: #1d2733;
+  --text-muted: #637385;
+
+  /* Accent (Sapphire → Cyan) */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --ring: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --gradient-accent: linear-gradient(90deg, var(--primary) 0%, var(--accent-cyan) 100%);
+
+  /* Semantic */
+  --success-bg: #ecfdf5; --success-fg: #047857; --success-brd: #89e6c0;
+  --error-bg: #fef2f2; --error-fg: #b91c1c; --error-brd: #f6b1b1;
+  --muted-bg: #f1f5f9; --muted-fg: #4b5b6c; --muted-brd: #d7e1ea;
+
+  /* Elevation & Motion */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.03);
+  --shadow: 0 4px 14px -2px rgba(0,0,0,0.12), 0 2px 6px -2px rgba(0,0,0,0.06);
+  --transition: 180ms cubic-bezier(.45,.2,.15,1);
+}
+
+[data-theme="ink"] {
+  --bg: #0c1116;
+  --surface: #161e23;
+  --surface-border: #26333f;
+  --text: #f1f5f9;
+  --text-muted: #8fa2b5;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --ring: #1d4ed8;
+  --accent-cyan: #06b6d4;
+  --gradient-accent: linear-gradient(90deg, var(--primary) 0%, var(--accent-cyan) 100%);
+  --success-bg: #064e3b; --success-fg: #34d399; --success-brd: #059669;
+  --error-bg: #3f1d20; --error-fg: #f87171; --error-brd: #dc2626;
+  --muted-bg: #19242d; --muted-fg: #92a5b7; --muted-brd: #2a3a48;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow: 0 8px 22px -8px rgba(0,0,0,0.7), 0 4px 10px -4px rgba(0,0,0,0.55);
+  --transition: 185ms cubic-bezier(.45,.2,.15,1);
+}

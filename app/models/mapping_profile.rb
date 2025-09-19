@@ -1,0 +1,2 @@
+class MappingProfile < ApplicationRecord
+end

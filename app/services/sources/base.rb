@@ -1,0 +1,54 @@
+# frozen_string_literal: true
+module Sources
+  class Base
+    # scope: nil or String (report_files.account_code)
+    # date:  Date
+    # currency: "USD" etc.
+    # kind: :statement or :accounting
+    def self.latest_rf_per_ba(model_klass:, kind:, scope:, date:, currency:, category_filter: nil, type_filter: nil)
+      rf_kind = ReportFile.kinds.fetch(kind.to_s)
+
+      table = model_klass.arel_table
+      join_sql = "JOIN report_files rf ON rf.id = #{table.name}.report_file_id"
+
+      rel = model_klass.joins(join_sql)
+                       .where("rf.kind = ?", rf_kind)
+                       .where("(#{table.name}.occurred_on = :d OR (#{table.name}.occurred_on IS NULL AND rf.reported_on = :d))", d: date)
+                       .where("COALESCE(#{table.name}.currency, rf.currency) = ?", currency)
+
+      rel = if scope.nil?
+              rel.where("rf.account_code IS NULL")
+            else
+              rel.where("rf.account_code = ?", scope)
+            end
+
+      if category_filter
+        rel = rel.where("LOWER(#{table.name}.category) IN (?)", Array(category_filter).map(&:downcase))
+      end
+      if type_filter
+        rel = rel.where("LOWER(#{table.name}.type) IN (?)", Array(type_filter).map(&:downcase))
+      end
+
+      # One latest report_file per BA
+      rel.group("#{table.name}.balance_account_id").maximum("rf.id") # => { "BAxxx" => latest_rf_id }
+    end
+
+    def self.sum_for_pairs(model_klass, pairs, date:, currency:, category_filter: nil, type_filter: nil)
+      return 0 if pairs.empty?
+
+      table = model_klass.arel_table
+      pairs.sum do |ba, rfid|
+        scope = model_klass.where(report_file_id: rfid, balance_account_id: ba)
+                           .where("(#{table.name}.occurred_on = :d OR (#{table.name}.occurred_on IS NULL AND #{table.name}.book_date = :d))", d: date)
+                           .where("#{table.name}.currency = ?", currency)
+        if category_filter
+          scope = scope.where("LOWER(#{table.name}.category) IN (?)", Array(category_filter).map(&:downcase))
+        end
+        if type_filter
+          scope = scope.where("LOWER(#{table.name}.type) IN (?)", Array(type_filter).map(&:downcase))
+        end
+        scope.sum(:amount_minor).to_i
+      end
+    end
+  end
+end

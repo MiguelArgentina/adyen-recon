@@ -1,0 +1,12 @@
+<tr id="recon_day_<%= day.id %>">
+  <td><%= day.date %></td>
+  <td><%= number_to_currency(day.statement_total_cents.to_i / 100.0, unit: day.currency) %></td>
+  <td><%= number_to_currency(day.accounting_total_cents.to_i / 100.0, unit: day.currency) %></td>
+  <td><%= number_to_currency(day.computed_total_cents.to_i / 100.0, unit: day.currency) %></td>
+  <td><%= number_to_currency(day.variance_cents.to_i / 100.0, unit: day.currency) %></td>
+  <td>
+    <% css = { "ok" => "badge-success", "warn" => "badge-muted", "error" => "badge-error", "pending" => "badge-muted" }[day.status] %>
+    <span class="badge <%= css %>"><%= day.status %></span>
+  </td>
+  <td class="text-right"><%= link_to "Details", reconciliation_path(day), class: "text-[color:var(--primary)] hover:underline" %></td>
+</tr>

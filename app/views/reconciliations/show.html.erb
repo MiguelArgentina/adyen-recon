@@ -1,0 +1,98 @@
+<h1 class="text-lg font-semibold mb-2">Recon for <%= @day.date %></h1>
+<p class="text-sm text-slate-600 mb-4"><%= @day.account_scope %> • <%= @day.currency %></p>
+
+
+<div class="mb-4 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <%= link_to "← Back to list",
+                reconciliations_path(scope: params[:scope], currency: params[:currency], from: params[:from], to: params[:to]),
+                class: "btn btn-secondary" %>
+    <span class="help">Scope: <%= @day.account_scope || "(nil)" %> • <%= @day.currency %></span>
+  </div>
+  <div class="flex items-center gap-2">
+    <% if @prev_date %>
+      <%= link_to "← #{@prev_date}", by_key_reconciliations_path(date: @prev_date, currency: @day.currency, scope: @day.account_scope), class: "btn btn-secondary" %>
+    <% end %>
+    <% if @next_date %>
+      <%= link_to "#{@next_date} →", by_key_reconciliations_path(date: @next_date, currency: @day.currency, scope: @day.account_scope), class: "btn btn-secondary" %>
+    <% end %>
+  </div>
+</div>
+
+
+
+
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="card">
+    <div class="text-xs uppercase text-slate-500">Statement total</div>
+    <div class="mt-1 text-lg font-semibold">
+      <%= number_to_currency(@day.statement_total_cents.to_i / 100.0, unit: @day.currency) %>
+    </div>
+  </div>
+  <div class="card">
+    <div class="text-xs uppercase text-slate-500">Accounting total</div>
+    <div class="mt-1 text-lg font-semibold">
+      <%= number_to_currency(@day.accounting_total_cents.to_i / 100.0, unit: @day.currency) %>
+    </div>
+  </div>
+  <div class="card">
+    <div class="text-xs uppercase text-slate-500">Computed total</div>
+    <div class="mt-1 text-lg font-semibold">
+      <%= number_to_currency(@day.computed_total_cents.to_i / 100.0, unit: @day.currency) %>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-6">
+  <h2 class="text-sm font-semibold mb-3">Variance breakdown</h2>
+  <% if @vars.blank? %>
+    <p class="text-sm text-slate-600">No variance lines recorded.</p>
+  <% else %>
+    <ul class="text-sm space-y-2">
+      <% @vars.each do |v| %>
+        <li class="flex items-start justify-between">
+          <span class="text-slate-700 capitalize"><%= v.kind.humanize %></span>
+          <span><%= number_to_currency(v.amount_cents.to_i / 100.0, unit: @day.currency) %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>
+
+<div class="card mb-6">
+  <h2 class="text-sm font-semibold mb-3">Fee intelligence</h2>
+  <% if @fees.nil? %>
+    <p class="text-sm text-slate-600">No fee data.</p>
+  <% else %>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+      <% %i[scheme_fees_cents processing_fees_cents interchange_cents chargeback_fees_cents payout_fees_cents other_fees_cents].each do |k| %>
+        <div class="panel">
+          <div class="text-xs uppercase text-slate-500"><%= k.to_s.sub("_cents","").humanize %></div>
+          <div class="mt-1 font-medium"><%= number_to_currency(@fees[k].to_i / 100.0, unit: @day.currency) %></div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2 class="text-sm font-semibold mb-3">Payout matching</h2>
+  <% if @payouts.blank? %>
+    <p class="text-sm text-slate-600">No payouts for this day.</p>
+  <% else %>
+    <table class="table">
+      <thead><tr><th>Adyen payout</th><th>Bank ref</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>
+      <% @payouts.each do |p| %>
+        <tr>
+          <td class="font-mono text-xs"><%= p.adyen_payout_id %></td>
+          <td class="font-mono text-xs"><%= p.bank_ref || "—" %></td>
+          <td><%= number_to_currency(p.adyen_amount_cents.to_i / 100.0, unit: p.currency) %></td>
+          <td><span class="badge <%= { matched:"badge-success", partial:"badge-muted", conflict:"badge-error", unmatched:"badge-muted" }[p.status] %>"><%= p.status %></span></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>
