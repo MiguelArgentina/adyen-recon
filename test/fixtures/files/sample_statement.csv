@@ -1,0 +1,4 @@
+Category,Type,Status,Transfer Id,Booking Date,Value Date,Currency,Amount,Starting Balance,Ending Balance
+platformPayment,Capture,Booked,TRX-CAP-1,2025-08-01,2025-08-01,USD,5663.97,,
+bank,bankTransfer,Booked,TRX-PAYOUT-1,2025-08-01,2025-08-01,USD,-3878.18,,
+bank,bankTransfer,Booked,TRX-PAYOUT-2,2025-08-02,2025-08-02,USD,-815.47,,

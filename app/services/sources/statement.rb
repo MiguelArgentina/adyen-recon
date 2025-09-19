@@ -22,6 +22,8 @@ module Sources
             OR (statement_lines.#{C::SL_CURRENCY} IS NULL OR statement_lines.#{C::SL_CURRENCY} = '')
                AND rf.#{C::RF_CURRENCY} = ?)
         SQL
+        .where("LOWER(statement_lines.#{C::SL_CATEGORY}) IN (?)", %w[payment platformpayment])
+        .where("LOWER(statement_lines.#{C::SL_TYPE}) = 'capture'")
         .sum(C::SL_AMOUNT) || 0
     end
   end
