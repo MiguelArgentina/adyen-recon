@@ -47,7 +47,7 @@ body::before {
   * { transition: none !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
 
-/* Top bar */
+/* Top Bar */
 .topbar {
   position: sticky;
   top: 0;
@@ -91,6 +91,7 @@ body::before {
   gap: .35rem;
   margin-left: auto;
 }
+
 .nav-link {
   position: relative;
   display: inline-flex;
@@ -430,4 +431,3 @@ body::before {
   .page-actions { width: 100%; justify-content: flex-start; }
   .table-wrap { border-radius: 1rem; }
 }
-
