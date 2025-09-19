@@ -30,7 +30,7 @@ class StatementAccountingReconciliationTest < ActiveSupport::TestCase
     day_record = Recon::BuildDaily.new(account_scope: nil, date: day_one, currency: "USD").call
     assert_equal expected_capture_minor, day_record.statement_total_cents
     assert_equal expected_capture_minor, day_record.computed_total_cents
-    assert_equal :ok, day_record.status
+    assert_equal :ok, day_record.status.to_sym
   end
 
   private
