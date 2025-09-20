@@ -43,18 +43,27 @@ module Recon
       end
 
       last = nil
-      scopes.each do |scope|
-        day = ReconciliationDay.lock.find_or_initialize_by(account_scope: scope, date: @date, currency: @currency)
+      ReconciliationDay.transaction do
+        scopes.each do |scope|
+          relation = ReconciliationDay.lock.where(account_scope: scope, date: @date, currency: @currency)
+          day = relation.order(updated_at: :desc).first
 
-        day.statement_total_cents  = Sources::Statement.total_for(scope, @date, @currency)
-        day.accounting_total_cents = Sources::Accounting.total_for(scope, @date, @currency)
-        day.computed_total_cents   = Sources::Computed.total_for(scope, @date, @currency)
-        day.status = :pending
-        day.save!
+          if day
+            relation.where.not(id: day.id).destroy_all
+          else
+            day = ReconciliationDay.new(account_scope: scope, date: @date, currency: @currency)
+          end
 
-        Recon::ExplainVariance.new(day).call
-        day.compute_status!
-        last = day
+          day.statement_total_cents  = Sources::Statement.total_for(scope, @date, @currency)
+          day.accounting_total_cents = Sources::Accounting.total_for(scope, @date, @currency)
+          day.computed_total_cents   = Sources::Computed.total_for(scope, @date, @currency)
+          day.status = :pending
+          day.save!
+
+          Recon::ExplainVariance.new(day).call
+          day.compute_status!
+          last = day
+        end
       end
       last
     end
