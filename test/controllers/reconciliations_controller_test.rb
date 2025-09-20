@@ -15,14 +15,12 @@ class ReconciliationsControllerTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "shows bank icon when payout matches exist" do
-    PayoutMatch.create!(
-      account_scope: nil,
-      payout_date: @date,
+  test "shows bank icon when payout records exist" do
+    Payout.create!(
+      booked_on: @date,
       currency: "USD",
-      adyen_payout_id: "PO123",
-      adyen_amount_cents: 100,
-      status: :unmatched
+      amount_minor: 100,
+      status: "booked"
     )
 
     get reconciliations_path
@@ -31,7 +29,7 @@ class ReconciliationsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "USD 💵 🏦"
   end
 
-  test "omits bank icon when payout matches are absent" do
+  test "omits bank icon when payout records are absent" do
     get reconciliations_path
 
     assert_response :success
