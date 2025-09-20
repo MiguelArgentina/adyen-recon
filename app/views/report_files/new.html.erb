@@ -36,8 +36,9 @@
         <%= f.text_field :currency, placeholder: "USD", class: "input mt-1" %>
       </div>
       <div class="md:col-span-2">
-        <label class="label">CSV file</label>
-        <%= f.file_field :file, class: "input mt-1" %>
+        <label class="label">CSV files</label>
+        <%= f.file_field :file, multiple: true, class: "input mt-1" %>
+        <p class="text-[11px] text-[color:var(--text-muted)] mt-1">Select one or more report files to queue them all at once.</p>
       </div>
 
       <% if @file.kind.present? && @file.errors[:kind].blank? %>
