@@ -33,6 +33,33 @@ class StatementAccountingReconciliationTest < ActiveSupport::TestCase
     assert_equal :ok, day_record.status.to_sym
   end
 
+  test "statement capture totals use value date when present" do
+    statement_rf = build_report_file(kind: :statement, reported_on: Date.new(2025, 9, 5))
+    attach_fixture(statement_rf, "value_date_statement.csv")
+    Parse::Statement.call(statement_rf)
+
+    accounting_rf = build_report_file(kind: :accounting, reported_on: Date.new(2025, 9, 5))
+    attach_fixture(accounting_rf, "value_date_accounting.csv")
+    Parse::Accounting.call(accounting_rf)
+
+    assert_equal :parsed_ok, statement_rf.reload.status.to_sym
+    assert_equal :parsed_ok, accounting_rf.reload.status.to_sym
+
+    value_day = Date.new(2025, 9, 5)
+    earlier_day = Date.new(2025, 9, 3)
+    expected_minor = 1_230
+
+    assert_equal expected_minor, Sources::Accounting.total_for(nil, value_day, "USD")
+    assert_equal expected_minor, Sources::Computed.total_for(nil, value_day, "USD")
+    assert_equal expected_minor, Sources::Statement.total_for(nil, value_day, "USD")
+
+    assert_equal 0, Sources::Statement.total_for(nil, earlier_day, "USD")
+
+    capture_line = StatementLine.find_by(report_file: statement_rf, transfer_id: "TRF-CAP-002")
+    refute_nil capture_line
+    assert_equal value_day, capture_line.book_date
+  end
+
   private
 
   def build_report_file(kind:, reported_on:)
