@@ -17,13 +17,25 @@ module Recon
         if Sources::Config::AccountingEntry
           scopes |= ReportFile
                       .joins("INNER JOIN accounting_entries ae ON ae.report_file_id = report_files.id")
-                      .where("ae.#{Sources::Config::AE_DATE} = ?", @date)
+                      .where(<<~SQL, @date)
+                        COALESCE(
+                          ae.#{Sources::Config::AE_BOOK_DATE},
+                          ae.#{Sources::Config::AE_DATE},
+                          report_files.#{Sources::Config::RF_REPORTED_ON}
+                        ) = ?
+                      SQL
                       .distinct.pluck(Sources::Config::RF_SCOPE)
         end
         if Sources::Config::StatementLine
           scopes |= ReportFile
                       .joins("INNER JOIN statement_lines sl ON sl.report_file_id = report_files.id")
-                      .where("sl.#{Sources::Config::SL_DATE} = ?", @date)
+                      .where(<<~SQL, @date)
+                        COALESCE(
+                          sl.#{Sources::Config::SL_BOOK_DATE},
+                          sl.#{Sources::Config::SL_DATE},
+                          report_files.#{Sources::Config::RF_REPORTED_ON}
+                        ) = ?
+                      SQL
                       .distinct.pluck(Sources::Config::RF_SCOPE)
         end
         scopes = scopes.uniq

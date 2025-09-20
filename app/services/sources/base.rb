@@ -13,7 +13,10 @@ module Sources
 
       rel = model_klass.joins(join_sql)
                        .where("rf.kind = ?", rf_kind)
-                       .where("(#{table.name}.occurred_on = :d OR (#{table.name}.occurred_on IS NULL AND rf.reported_on = :d))", d: date)
+                       .where(
+                         "COALESCE(#{table.name}.book_date, #{table.name}.occurred_on, rf.reported_on) = ?",
+                         date
+                       )
                        .where("COALESCE(#{table.name}.currency, rf.currency) = ?", currency)
 
       rel = if scope.nil?
@@ -39,7 +42,10 @@ module Sources
       table = model_klass.arel_table
       pairs.sum do |ba, rfid|
         scope = model_klass.where(report_file_id: rfid, balance_account_id: ba)
-                           .where("(#{table.name}.occurred_on = :d OR (#{table.name}.occurred_on IS NULL AND #{table.name}.book_date = :d))", d: date)
+                           .where(
+                             "(#{table.name}.book_date = :d) OR (#{table.name}.book_date IS NULL AND #{table.name}.occurred_on = :d)",
+                             d: date
+                           )
                            .where("#{table.name}.currency = ?", currency)
         if category_filter
           scope = scope.where("LOWER(#{table.name}.category) IN (?)", Array(category_filter).map(&:downcase))
