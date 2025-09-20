@@ -7,16 +7,18 @@ class ReconciliationsController < ApplicationController
     @date_from = (params[:from].presence && Date.parse(params[:from])) rescue nil
     @date_to   = (params[:to].presence   && Date.parse(params[:to]))   rescue nil
 
-    @scope = params.key?(:scope) ? params[:scope].presence : nil
     @days  = ReconciliationDay.order(date: :desc)
-    @days  = @days.where(account_scope: @scope) if params.key?(:scope) # only when filter is set
 
-    unless params.key?(:scope)
-      # default to nil-scope unless scope is explicitly provided
-      @days = @days.where(account_scope: nil)
+    if params.key?(:scope)
+      @scope = params[:scope].presence
+      @days  = @days.where(account_scope: @scope)
     else
-      @days = @days.where(account_scope: @scope)
+      # default to nil-scope unless scope is explicitly provided
+      @scope = nil
+      @days  = @days.where(account_scope: nil)
     end
+
+    @days = @days.where(currency: @currency) if @currency.present?
 
     if @date_from && @date_to
       @days = @days.where(date: @date_from..@date_to)
