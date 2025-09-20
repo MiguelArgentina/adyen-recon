@@ -9,7 +9,7 @@ export default class extends Controller {
     if (!input) return
 
     const count = input.files ? input.files.length : 0
-    if (count > 1) {
+    if (count > 0) {
       this.showSpinner(count)
     } else {
       this.reset()
