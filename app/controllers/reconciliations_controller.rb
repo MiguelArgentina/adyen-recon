@@ -39,6 +39,7 @@ class ReconciliationsController < ApplicationController
       if date_keys.any? && currency_filter.any?
         Payout.includes(:source_report_file).where(booked_on: date_keys).find_each do |payout|
           resolved_currency = payout.currency.presence || payout.source_report_file&.currency
+          resolved_currency = resolved_currency&.upcase
           next unless resolved_currency && currency_filter.include?(resolved_currency)
 
           scope = payout.source_report_file&.account_code.presence

@@ -29,6 +29,20 @@ class ReconciliationsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "USD 💵 🏦"
   end
 
+  test "shows bank icon when payout currency is lowercase" do
+    Payout.create!(
+      booked_on: @date,
+      currency: "usd",
+      amount_minor: 100,
+      status: "booked"
+    )
+
+    get reconciliations_path
+
+    assert_response :success
+    assert_includes response.body, "USD 💵 🏦"
+  end
+
   test "omits bank icon when payout records are absent" do
     get reconciliations_path
 
