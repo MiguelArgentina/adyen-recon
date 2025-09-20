@@ -17,8 +17,23 @@ module ApplicationHelper
     content_tag(:span, label, class: css)
   end
 
-    def money_minor(cents, currency)
-      number_to_currency((cents.to_i) / 100.0, unit: currency)
+    def money_minor(cents, currency, include_unit: true)
+      unit = include_unit ? currency : ""
+      number_to_currency((cents.to_i) / 100.0, unit: unit)
+    end
+
+    def currency_with_icon(currency)
+      return "" if currency.blank?
+
+      icon = case currency
+             when "EUR" then "💶"
+             when "USD" then "💵"
+             when "GBP" then "💷"
+             when "JPY" then "💴"
+             else "💱"
+             end
+
+      "#{currency} #{icon}"
     end
 
   # Convert integer minor units to decimal currency

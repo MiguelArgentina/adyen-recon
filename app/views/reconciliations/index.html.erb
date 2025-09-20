@@ -74,6 +74,7 @@
       <thead>
       <tr>
         <th>Date</th>
+        <th>Currency</th>
         <th>Statement</th>
         <th>Accounting</th>
         <th>Computed</th>
@@ -86,10 +87,11 @@
       <% @days.each do |day| %>
         <tr>
           <td><%= day.date %></td>
-          <td><%= money_minor(day.statement_total_cents, day.currency) %></td>
-          <td><%= money_minor(day.accounting_total_cents, day.currency) %></td>
-          <td><%= money_minor(day.computed_total_cents, day.currency) %></td>
-          <td><%= money_minor(day.variance_cents, day.currency) %></td>
+          <td><%= currency_with_icon(day.currency) %></td>
+          <td><%= money_minor(day.statement_total_cents, day.currency, include_unit: false) %></td>
+          <td><%= money_minor(day.accounting_total_cents, day.currency, include_unit: false) %></td>
+          <td><%= money_minor(day.computed_total_cents, day.currency, include_unit: false) %></td>
+          <td><%= money_minor(day.variance_cents, day.currency, include_unit: false) %></td>
           <td>
           <span class="badge <%= { "ok"=>"badge-success", "warn"=>"badge-muted", "error"=>"badge-error" }[day.status] %>">
             <%= day.status %>
