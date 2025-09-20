@@ -87,7 +87,7 @@
       <% @days.each do |day| %>
         <tr>
           <td><%= day.date %></td>
-          <td><%= currency_with_icon(day.currency) %></td>
+          <td><%= currency_with_icon(day.currency, payout: @payout_lookup&.[]([day.account_scope, day.date, day.currency])) %></td>
           <td><%= money_minor(day.statement_total_cents, day.currency, include_unit: false) %></td>
           <td><%= money_minor(day.accounting_total_cents, day.currency, include_unit: false) %></td>
           <td><%= money_minor(day.computed_total_cents, day.currency, include_unit: false) %></td>

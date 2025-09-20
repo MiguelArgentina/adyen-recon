@@ -27,6 +27,21 @@ class ReconciliationsController < ApplicationController
     end
     @days = @days.limit(60)
 
+    if @days.any?
+      scopes     = @days.map(&:account_scope).uniq
+      dates      = @days.map(&:date).uniq
+      currencies = @days.map(&:currency).uniq
+
+      @payout_lookup = PayoutMatch
+                        .where(account_scope: scopes, payout_date: dates, currency: currencies)
+                        .each_with_object({}) do |payout, memo|
+        key = [payout.account_scope, payout.payout_date, payout.currency]
+        memo[key] = true
+      end
+    else
+      @payout_lookup = {}
+    end
+
     # dropdown data
     @available_scopes_nonnil = ReconciliationDay.distinct.where.not(account_scope: nil)
                                                 .order(:account_scope).pluck(:account_scope)
