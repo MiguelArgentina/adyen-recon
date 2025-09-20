@@ -107,6 +107,7 @@ class ReportFile < ApplicationRecord
   end
 
   def broadcast_status_refresh
+    reload
     status_dom_id = dom_id(self, :status)
 
     Turbo::StreamsChannel.broadcast_update_later_to(

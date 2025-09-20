@@ -43,6 +43,14 @@ body::before {
   border-radius: .75rem;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin .8s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
