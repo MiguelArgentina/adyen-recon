@@ -1,4 +1,6 @@
 # app/controllers/reconciliations_controller.rb
+require "set"
+
 class ReconciliationsController < ApplicationController
   include ApplicationHelper
 
@@ -30,17 +32,21 @@ class ReconciliationsController < ApplicationController
     if @days.any?
       keys = @days.map { |day| [day.account_scope, day.date, day.currency] }.uniq
 
-      date_keys     = keys.map { |key| key[1] }.uniq
-      currency_keys = keys.map { |key| key[2] }.uniq
+      date_keys        = keys.map { |key| key[1] }.uniq
+      currency_filter  = keys.map { |key| key[2] }.uniq.to_set
+      payout_combos    = Set.new
 
-      match_keys = PayoutMatch.where(payout_date: date_keys, currency: currency_keys)
-                               .pluck(:account_scope, :payout_date, :currency)
+      if date_keys.any? && currency_filter.any?
+        Payout.includes(:source_report_file).where(booked_on: date_keys).find_each do |payout|
+          resolved_currency = payout.currency.presence || payout.source_report_file&.currency
+          next unless resolved_currency && currency_filter.include?(resolved_currency)
 
-      match_lookup = match_keys.each_with_object({}) do |combo, memo|
-        memo[combo] = true
+          scope = payout.source_report_file&.account_code.presence
+          payout_combos << [scope, payout.booked_on, resolved_currency]
+        end
       end
 
-      @payout_lookup = keys.index_with { |combo| match_lookup.key?(combo) }
+      @payout_lookup = keys.index_with { |combo| payout_combos.include?(combo) }
     else
       @payout_lookup = {}
     end
