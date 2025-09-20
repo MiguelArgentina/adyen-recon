@@ -191,6 +191,18 @@ module Parse
     def self.normalize_hash(h) h.each_with_object({}) { |(k,v),acc| acc[normalize_key(k)] = v } end
     def self.pick(hash, *keys) keys.each { |k| v = hash[k]; return v unless v.nil? || v.to_s.strip.empty? }; nil end
     def self.safe_date(v) return nil if v.nil? || v.to_s.strip.empty?; Date.parse(v.to_s) rescue nil end
-    def self.money_to_minor(v) return nil if v.nil? || v.to_s.strip.empty?; (Float(v.to_s.gsub(/[,]/,'')) * 100).round rescue nil end
+    def self.money_to_minor(v)
+      return nil if v.nil?
+
+      str = v.to_s.strip
+      return nil if str.empty?
+
+      sanitized = str.gsub(/[^\d\-,\.]/, "").delete(",")
+      return nil if sanitized.blank?
+
+      (Float(sanitized) * 100).round
+    rescue ArgumentError, TypeError
+      nil
+    end
   end
 end
