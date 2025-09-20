@@ -107,7 +107,7 @@ class ReportFilesController < ApplicationController
     successes = []
     failures = []
 
-    uploads.each do |uploaded|
+    uploads.compact_blank.each do |uploaded|
       file = prepare_file_for_upload(ReportFile.new(base_attrs), uploaded)
       ensure_default_credential!(file)
       file.status ||= :pending
