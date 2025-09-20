@@ -37,6 +37,7 @@ class ReportFilesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to report_files_path
+    assert_includes flash[:notice], "Queued 2 files"
     kinds = ReportFile.order(:created_at).last(2).map(&:kind)
     assert_includes kinds, "statement"
     assert_includes kinds, "accounting"

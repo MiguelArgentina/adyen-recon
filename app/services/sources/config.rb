@@ -5,7 +5,7 @@ module Sources
     ReportFile       = "ReportFile".safe_constantize
     StatementLine    = "StatementLine".safe_constantize
     AccountingEntry  = "AccountingEntry".safe_constantize
-    AdyenPayout      = "AdyenPayout".safe_constantize # optional
+    PayoutModel      = "Payout".safe_constantize
 
     # ReportFile columns
     RF_KIND        = "kind"         # enum int ("statement"/"accounting")

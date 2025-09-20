@@ -1,4 +1,6 @@
 class ReportFile < ApplicationRecord
+  include ActionView::RecordIdentifier
+
   belongs_to :adyen_credential
   has_one_attached :file
   has_many :statement_lines, dependent: :delete_all
@@ -6,6 +8,9 @@ class ReportFile < ApplicationRecord
 
   enum :kind, { statement: 0, accounting: 1 }
   enum :status, { pending: 0, parsed: 1, failed: 2, parsed_with_errors: 3, parsed_ok: 4 }
+
+  after_create_commit :broadcast_row_append
+  after_update_commit :broadcast_status_refresh
 
   validates :kind, presence: true
   # reported_on becomes optional; we fill it automatically if blank
@@ -92,6 +97,33 @@ class ReportFile < ApplicationRecord
   end
 
   private
+  def broadcast_row_append
+    Turbo::StreamsChannel.broadcast_prepend_later_to(
+      :report_files,
+      target: "report_files_list",
+      partial: "report_files/file_row",
+      locals: { file: self }
+    )
+  end
+
+  def broadcast_status_refresh
+    status_dom_id = dom_id(self, :status)
+
+    Turbo::StreamsChannel.broadcast_replace_later_to(
+      :report_files,
+      target: status_dom_id,
+      partial: "report_files/status_badge",
+      locals: { file: self }
+    )
+
+    Turbo::StreamsChannel.broadcast_replace_later_to(
+      self,
+      target: status_dom_id,
+      partial: "report_files/status_badge",
+      locals: { file: self }
+    )
+  end
+
   def set_defaults
     self.status ||= :pending
     self.reported_on ||= Date.current

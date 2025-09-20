@@ -1,10 +1,16 @@
 <!-- app/views/report_files/show.html.erb -->
+<%= turbo_stream_from @file %>
+
 <div class="page-header">
   <div>
     <h1 class="page-title">Report details</h1>
     <p class="page-subtitle">
       <strong>Kind:</strong> <span class="capitalize"><%= @file.kind %></span> ·
-      <strong>Status:</strong> <%= status_badge(@file.status) %> ·
+      <strong>Status:</strong>
+      <turbo-frame id="<%= dom_id(@file, :status) %>">
+        <%= render "report_files/status_badge", file: @file %>
+      </turbo-frame>
+      ·
       <strong>Reported on:</strong> <%= @file.reported_on %>
     </p>
   </div>

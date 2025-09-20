@@ -1,0 +1,7 @@
+<%# Renders the status badge (and optional spinner) for a report file %>
+<div class="flex items-center gap-2">
+  <%= status_badge(file.status) %>
+  <% if file.pending? %>
+    <span class="inline-block h-3 w-3 border-2 border-[color:var(--text-muted)] border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
+  <% end %>
+</div>

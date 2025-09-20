@@ -55,6 +55,9 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
 
+  # Limit async job threads so parsing bursts do not exhaust the web connection pool.
+  config.active_job.queue_adapter = ActiveJob::QueueAdapters::AsyncAdapter.new(min_threads: 1, max_threads: 2, idletime: 60)
+
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 

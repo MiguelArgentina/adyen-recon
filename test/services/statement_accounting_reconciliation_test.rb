@@ -1,8 +1,15 @@
 require "test_helper"
 
 class StatementAccountingReconciliationTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   setup do
+    clear_enqueued_jobs
     @credential = AdyenCredential.create!(label: "Test", auth_method: :password)
+  end
+
+  teardown do
+    clear_enqueued_jobs
   end
 
   test "statement captures align with accounting captures" do
@@ -31,6 +38,19 @@ class StatementAccountingReconciliationTest < ActiveSupport::TestCase
     assert_equal expected_capture_minor, day_record.statement_total_cents
     assert_equal expected_capture_minor, day_record.computed_total_cents
     assert_equal :ok, day_record.status.to_sym
+  end
+
+  test "parsing statement enqueues reconciliation jobs per day" do
+    statement_rf = build_report_file(kind: :statement, reported_on: Date.new(2025, 8, 1))
+    attach_fixture(statement_rf, "sample_statement.csv")
+
+    assert_enqueued_jobs 2, only: [ReconcileDayJob] do
+      Parse::Statement.call(statement_rf)
+    end
+
+    job_args = enqueued_jobs.select { |job| job[:job] == ReconcileDayJob }.map { |job| job[:args].first }
+    assert_includes job_args, { "account_scope" => nil, "date" => Date.new(2025, 8, 1), "currency" => "USD" }
+    assert_includes job_args, { "account_scope" => nil, "date" => Date.new(2025, 8, 2), "currency" => "USD" }
   end
 
   test "statement capture totals use value date when present" do
