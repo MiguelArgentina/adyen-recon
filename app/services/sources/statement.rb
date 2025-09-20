@@ -4,6 +4,12 @@ module Sources
     C = Config
 
     def self.total_for(scope, date, currency)
+      return 0 unless C::StatementLine
+
+      capture_scope(scope, date, currency).sum(C::SL_AMOUNT).to_i
+    end
+
+    def self.capture_scope(scope, date, currency)
       rf_kind = ReportFile.kinds[C::KIND_STATEMENT] # integer enum
 
       C::StatementLine
@@ -24,7 +30,6 @@ module Sources
         SQL
         .where("LOWER(statement_lines.#{C::SL_CATEGORY}) IN (?)", %w[payment platformpayment])
         .where("LOWER(statement_lines.#{C::SL_TYPE}) = 'capture'")
-        .sum(C::SL_AMOUNT) || 0
     end
   end
 end

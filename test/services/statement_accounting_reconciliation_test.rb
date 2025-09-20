@@ -60,6 +60,53 @@ class StatementAccountingReconciliationTest < ActiveSupport::TestCase
     assert_equal value_day, capture_line.book_date
   end
 
+  test "computed totals favor statement data when accounting is inflated" do
+    day = Date.new(2025, 8, 3)
+
+    statement_rf = build_report_file(kind: :statement, reported_on: day)
+    accounting_rf = build_report_file(kind: :accounting, reported_on: day)
+
+    StatementLine.create!(
+      report_file: statement_rf,
+      line_no: 1,
+      occurred_on: day,
+      book_date: day,
+      category: "platformpayment",
+      type: "capture",
+      status: "booked",
+      amount_minor: 220_555,
+      currency: "USD"
+    )
+
+    AccountingEntry.create!(
+      report_file: accounting_rf,
+      line_no: 1,
+      occurred_on: day,
+      book_date: day,
+      category: "platformpayment",
+      type: "capture",
+      status: "booked",
+      amount_minor: 220_555,
+      currency: "USD"
+    )
+
+    AccountingEntry.create!(
+      report_file: accounting_rf,
+      line_no: 2,
+      occurred_on: day,
+      book_date: day,
+      category: "platformpayment",
+      type: "capture",
+      status: "booked",
+      amount_minor: 534_389,
+      currency: "USD"
+    )
+
+    assert_equal 220_555, Sources::Statement.total_for(nil, day, "USD")
+    assert_equal 754_944, Sources::Accounting.total_for(nil, day, "USD")
+    assert_equal 220_555, Sources::Computed.total_for(nil, day, "USD")
+  end
+
   private
 
   def build_report_file(kind:, reported_on:)
