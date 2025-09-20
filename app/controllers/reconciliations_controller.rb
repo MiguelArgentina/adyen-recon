@@ -28,15 +28,10 @@ class ReconciliationsController < ApplicationController
     @days = @days.limit(60)
 
     if @days.any?
-      scopes     = @days.map(&:account_scope).uniq
-      dates      = @days.map(&:date).uniq
-      currencies = @days.map(&:currency).uniq
+      keys = @days.map { |day| [day.account_scope, day.date, day.currency] }.uniq
 
-      @payout_lookup = PayoutMatch
-                        .where(account_scope: scopes, payout_date: dates, currency: currencies)
-                        .each_with_object({}) do |payout, memo|
-        key = [payout.account_scope, payout.payout_date, payout.currency]
-        memo[key] = true
+      @payout_lookup = keys.each_with_object({}) do |(scope, date, currency), memo|
+        memo[[scope, date, currency]] = Sources::Payouts.for(scope, date:, currency:).any?
       end
     else
       @payout_lookup = {}
