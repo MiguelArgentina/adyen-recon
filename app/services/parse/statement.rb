@@ -8,7 +8,7 @@ module Parse
 
     # header variants (all normalized to downcased + stripped)
     OCC_DATE_KEYS  = %w[valuedate value_date bookingdate eventdate date]
-    BOOK_DATE_KEYS = %w[bookingdate bookdate book_date valuedate date]
+    BOOK_DATE_KEYS = %w[valuedate value_date bookingdate bookdate book_date date]
     CAT_KEYS       = %w[category]
     TYPE_KEYS      = %w[type]
     STATUS_KEYS    = %w[status]
