@@ -177,7 +177,10 @@ module Parse
     # --- helpers ---
     def self.money_to_minor(val)
       return nil if val.nil? || val.to_s.strip.empty?
-      (Float(val.to_s.gsub(/[,]/,'')) * 100).round
+
+      (Float(val.to_s.gsub(/[,]/, "")) * 100).round
+    rescue ArgumentError, TypeError
+      nil
     end
 
     def self.safe_date(val)
