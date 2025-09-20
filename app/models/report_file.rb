@@ -109,14 +109,14 @@ class ReportFile < ApplicationRecord
   def broadcast_status_refresh
     status_dom_id = dom_id(self, :status)
 
-    Turbo::StreamsChannel.broadcast_replace_later_to(
+    Turbo::StreamsChannel.broadcast_update_later_to(
       :report_files,
       target: status_dom_id,
       partial: "report_files/status_badge",
       locals: { file: self }
     )
 
-    Turbo::StreamsChannel.broadcast_replace_later_to(
+    Turbo::StreamsChannel.broadcast_update_later_to(
       self,
       target: status_dom_id,
       partial: "report_files/status_badge",
