@@ -136,7 +136,8 @@ class ReportFilesController < ApplicationController
 
     if failures.blank?
       replaced_rows = successes.sum { |s| s[:replacement].to_h[:rows].to_i }
-      notice = "Upload received for #{successes.size} files. Parsing…"
+      filenames = successes.map { |s| s[:file].original_filename || s[:file].file&.filename&.to_s }.compact
+      notice = "Queued #{successes.size} file#{'s' unless successes.one?}: #{filenames.to_sentence}. Parsing…"
       notice += " Replaced #{replaced_rows} existing row(s)." if replaced_rows.positive?
       redirect_to report_files_path, notice: notice
     else

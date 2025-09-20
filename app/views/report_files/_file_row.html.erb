@@ -1,0 +1,14 @@
+<tr id="<%= dom_id(file) %>">
+  <td><%= l file.created_at, format: :short %></td>
+  <td class="capitalize"><%= file.kind %></td>
+  <td><%= file.reported_on %></td>
+  <td><%= file.currency %></td>
+  <td>
+    <turbo-frame id="<%= dom_id(file, :status) %>">
+      <%= render "report_files/status_badge", file: file %>
+    </turbo-frame>
+  </td>
+  <td class="text-right">
+    <%= link_to "Details", report_file_path(file), class: "link-accent" %>
+  </td>
+</tr>

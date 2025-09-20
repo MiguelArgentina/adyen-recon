@@ -144,6 +144,12 @@ module Parse
         rescue => e
           Rails.logger.warn("[Parse::Accounting] summary rebuild failed day=#{day}: #{e.class}: #{e.message}")
         end
+
+        begin
+          Parse::ReconciliationEnqueuer.enqueue(report_file:, day_currency_map: day_currency_map)
+        rescue => e
+          Rails.logger.warn("[Parse::Accounting] reconciliation enqueue failed: #{e.class}: #{e.message}")
+        end
       end
 
     rescue => e

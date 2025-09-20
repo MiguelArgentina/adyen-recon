@@ -1,4 +1,6 @@
 <!-- app/views/report_files/index.html.erb -->
+<%= turbo_stream_from :report_files %>
+
 <div class="page-header">
   <div>
     <h1 class="page-title">Report uploads</h1>
@@ -43,19 +45,8 @@
           <th></th>
         </tr>
       </thead>
-      <tbody>
-        <% @files.each do |f| %>
-          <tr>
-            <td><%= l f.created_at, format: :short %></td>
-            <td class="capitalize"><%= f.kind %></td>
-            <td><%= f.reported_on %></td>
-            <td><%= f.currency %></td>
-            <td><%= status_badge(f.status) %></td>
-            <td class="text-right">
-              <%= link_to "Details", report_file_path(f), class: "link-accent" %>
-            </td>
-          </tr>
-        <% end %>
+      <tbody id="report_files_list">
+        <%= render partial: "report_files/file_row", collection: @files, as: :file %>
       </tbody>
     </table>
   </div>
