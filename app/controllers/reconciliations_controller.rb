@@ -30,9 +30,17 @@ class ReconciliationsController < ApplicationController
     if @days.any?
       keys = @days.map { |day| [day.account_scope, day.date, day.currency] }.uniq
 
-      @payout_lookup = keys.each_with_object({}) do |(scope, date, currency), memo|
-        memo[[scope, date, currency]] = Sources::Payouts.for(scope, date:, currency:).any?
+      date_keys     = keys.map { |key| key[1] }.uniq
+      currency_keys = keys.map { |key| key[2] }.uniq
+
+      match_keys = PayoutMatch.where(payout_date: date_keys, currency: currency_keys)
+                               .pluck(:account_scope, :payout_date, :currency)
+
+      match_lookup = match_keys.each_with_object({}) do |combo, memo|
+        memo[combo] = true
       end
+
+      @payout_lookup = keys.index_with { |combo| match_lookup.key?(combo) }
     else
       @payout_lookup = {}
     end
