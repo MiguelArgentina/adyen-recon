@@ -30,6 +30,9 @@ module Sources
     AE_AMOUNT    = "amount_minor"
     AE_CATEGORY  = "category"
     AE_TYPE      = "type"
+    AE_SUBCATEGORY = "subcategory"
+    AE_REFERENCE   = "reference"
+    AE_DESCRIPTION = "description"
 
     # Enum names (Ruby-level). We'll resolve to integers safely.
     KIND_STATEMENT  = "statement"
