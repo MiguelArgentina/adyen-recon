@@ -113,7 +113,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_19_012406) do
   end
 
   create_table "fee_breakdowns", force: :cascade do |t|
-    t.string "account_scope", null: false
+    t.string "account_scope"
     t.date "date", null: false
     t.string "currency", null: false
     t.bigint "scheme_fees_cents", default: 0

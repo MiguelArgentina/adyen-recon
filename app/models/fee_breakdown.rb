@@ -1,5 +1,6 @@
 class FeeBreakdown < ApplicationRecord
-  validates :account_scope, :date, :currency, presence: true
+  validates :date, :currency, presence: true
+  validates :account_scope, presence: true, unless: -> { account_scope.nil? }
 
   def total!
     self.total_fees_cents = %i[
