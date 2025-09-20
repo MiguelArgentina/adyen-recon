@@ -137,7 +137,13 @@ class ReportFilesController < ApplicationController
     if failures.blank?
       replaced_rows = successes.sum { |s| s[:replacement].to_h[:rows].to_i }
       filenames = successes.map { |s| s[:file].original_filename || s[:file].file&.filename&.to_s }.compact
-      notice = "Queued #{successes.size} file#{'s' unless successes.one?}: #{filenames.to_sentence}. Parsing…"
+      notice_filenames = filenames.first(5)
+      truncated_list = notice_filenames.to_sentence
+      if filenames.size > notice_filenames.size
+        truncated_list = "#{truncated_list} and #{filenames.size - notice_filenames.size} more"
+      end
+      truncated_list = "#{successes.size} file#{'s' unless successes.one?}" if truncated_list.blank?
+      notice = "Queued #{successes.size} file#{'s' unless successes.one?}: #{truncated_list}. Parsing…"
       notice += " Replaced #{replaced_rows} existing row(s)." if replaced_rows.positive?
       redirect_to report_files_path, notice: notice
     else
