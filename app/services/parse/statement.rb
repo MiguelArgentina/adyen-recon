@@ -182,9 +182,15 @@ module Parse
 
     # --- helpers ---
     def self.money_to_minor(val)
-      return nil if val.nil? || val.to_s.strip.empty?
+      return nil if val.nil?
 
-      (Float(val.to_s.gsub(/[,]/, "")) * 100).round
+      str = val.to_s.strip
+      return nil if str.empty?
+
+      sanitized = str.gsub(/[^\d\-,\.]/, "").delete(",")
+      return nil if sanitized.blank?
+
+      (Float(sanitized) * 100).round
     rescue ArgumentError, TypeError
       nil
     end

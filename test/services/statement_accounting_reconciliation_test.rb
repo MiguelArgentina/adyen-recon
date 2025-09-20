@@ -53,6 +53,18 @@ class StatementAccountingReconciliationTest < ActiveSupport::TestCase
     assert_includes job_args, { "account_scope" => nil, "date" => Date.new(2025, 8, 2), "currency" => "USD" }
   end
 
+  test "statement parser handles currency-prefixed amount values" do
+    statement_rf = build_report_file(kind: :statement, reported_on: Date.new(2025, 8, 5))
+    attach_fixture(statement_rf, "currency_prefixed_statement.csv")
+
+    Parse::Statement.call(statement_rf)
+
+    line = statement_rf.statement_lines.find_by(transfer_id: "TRX-BANK-1")
+    refute_nil line
+    assert_equal(-147_630, line.amount_minor)
+    assert_equal "USD", line.currency
+  end
+
   test "statement capture totals use value date when present" do
     statement_rf = build_report_file(kind: :statement, reported_on: Date.new(2025, 9, 5))
     attach_fixture(statement_rf, "value_date_statement.csv")
@@ -125,6 +137,18 @@ class StatementAccountingReconciliationTest < ActiveSupport::TestCase
     assert_equal 220_555, Sources::Statement.total_for(nil, day, "USD")
     assert_equal 754_944, Sources::Accounting.total_for(nil, day, "USD")
     assert_equal 220_555, Sources::Computed.total_for(nil, day, "USD")
+  end
+
+  test "accounting parser handles currency-prefixed amount values" do
+    accounting_rf = build_report_file(kind: :accounting, reported_on: Date.new(2025, 8, 5))
+    attach_fixture(accounting_rf, "currency_prefixed_accounting.csv")
+
+    Parse::Accounting.call(accounting_rf)
+
+    entry = accounting_rf.accounting_entries.find_by(category: "bank", type: "banktransfer")
+    refute_nil entry
+    assert_equal(-147_630, entry.amount_minor)
+    assert_equal "USD", entry.currency
   end
 
   private
