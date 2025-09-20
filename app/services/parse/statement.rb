@@ -24,79 +24,97 @@ module Parse
     DESC_KEYS      = %w[description]
     CP_NAME_KEYS   = %w[counterpartyname counterparty counter_party]
 
+    RowAbort = Class.new(StandardError)
+    private_constant :RowAbort
+
     def self.call(report_file)
       raise "No attached file" unless report_file.file.attached?
 
-      start_time     = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      io             = report_file.file.download
-      currencies     = Set.new
-      created        = 0
-      skipped        = 0
-      row_errors     = []
-      distinct_days  = Set.new
+      start_time    = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      raw_csv       = report_file.file.download
+      currencies    = Set.new
+      skipped       = 0
+      row_errors    = []
+      distinct_days = Set.new
+      day_currency_map = Hash.new { |h, k| h[k] = Set.new }
+      rows_buffer   = []
+      created       = 0
+      aborted       = false
 
-      # --- Idempotency: purge all previous lines for this report_file
-      StatementLine.where(report_file_id: report_file.id).delete_all
+      begin
+        ActiveRecord::Base.transaction do
+          report_file.lock!
 
-      csv = CSV.new(io, headers: true)
+          csv = CSV.new(raw_csv, headers: true)
 
-      ActiveRecord::Base.transaction do
-        csv.each_with_index do |row, i|
-          begin
-            norm = normalize_hash(row.to_h)
+          csv.each_with_index do |row, i|
+            begin
+              norm = normalize_hash(row.to_h)
 
-            # dates
-            occurred_on = safe_date(pick(norm, *OCC_DATE_KEYS))
-            book_date   = safe_date(pick(norm, *BOOK_DATE_KEYS)) || occurred_on || report_file.reported_on
-            unless book_date
+              occurred_on = safe_date(pick(norm, *OCC_DATE_KEYS))
+              book_date   = safe_date(pick(norm, *BOOK_DATE_KEYS)) || occurred_on || report_file.reported_on
+              unless book_date
+                skipped += 1
+                next
+              end
+
+              amount   = money_to_minor(pick(norm, *AMOUNT_KEYS))
+              currency = pick(norm, *CURR_KEYS)
+
+              ba_id   = pick(norm, *BA_ID_KEYS)
+              ba_code = pick(norm, *BA_CODE_KEYS)
+              if ba_id.blank? && ba_code.present?
+                ba_id = ba_code
+              elsif ba_id.blank? && ba_code.blank?
+                ba_id = ba_code = "BA|#{currency || 'UNK'}"
+              end
+
+              attrs = {
+                report_file_id:       report_file.id,
+                line_no:              i + 1,
+                occurred_on:          occurred_on || book_date,
+                book_date:            book_date,
+                category:             pick(norm, *CAT_KEYS)&.downcase,
+                type:                 pick(norm, *TYPE_KEYS)&.downcase,
+                status:               pick(norm, *STATUS_KEYS) || 'booked',
+                amount_minor:         amount,
+                currency:             currency,
+                balance_before_minor: money_to_minor(pick(norm, *BAL_BEF_KEYS)),
+                balance_after_minor:  money_to_minor(pick(norm, *BAL_AFT_KEYS)),
+                balance_account_id:   ba_id,
+                balance_account_code: ba_code,
+                reference:            pick(norm, *REF_KEYS),
+                transfer_id:          pick(norm, *TRX_ID_KEYS),
+                payout_id:            pick(norm, *PAYOUT_ID_KEYS),
+                description:          pick(norm, *DESC_KEYS),
+                counterparty:         pick(norm, *CP_NAME_KEYS)
+              }
+
+              rows_buffer << attrs
+              distinct_days << book_date
+              day_currency_map[book_date] << currency
+              currencies << currency if currency.present?
+
+            rescue => e
+              row_errors << "row=#{i + 1}: #{e.class}: #{e.message}"
               skipped += 1
-              next
+              raise RowAbort if row_errors.size >= ROW_ERROR_ABORT_THRESHOLD
             end
-            distinct_days << book_date
-
-            # money
-            amount   = money_to_minor(pick(norm, *AMOUNT_KEYS))
-            currency = pick(norm, *CURR_KEYS)
-            currencies << currency if currency.present?
-
-            # balance account (prefer explicit; fallback to code; as a last resort, synthesize)
-            ba_id   = pick(norm, *BA_ID_KEYS)
-            ba_code = pick(norm, *BA_CODE_KEYS)
-            if ba_id.blank? && ba_code.present?
-              ba_id = ba_code
-            elsif ba_id.blank? && ba_code.blank?
-              # synthesize a stable key to avoid nil BA (keeps recon join happy)
-              ba_id = ba_code = "BA|#{currency || 'UNK'}"
-            end
-
-            StatementLine.create!(
-              report_file_id:       report_file.id,
-              line_no:              i + 1,
-              occurred_on:          occurred_on || book_date,
-              book_date:            book_date,
-              category:             pick(norm, *CAT_KEYS)&.downcase,
-              type:                 pick(norm, *TYPE_KEYS)&.downcase,
-              status:               pick(norm, *STATUS_KEYS) || 'booked',
-              amount_minor:         amount,
-              currency:             currency,
-              balance_before_minor: money_to_minor(pick(norm, *BAL_BEF_KEYS)),
-              balance_after_minor:  money_to_minor(pick(norm, *BAL_AFT_KEYS)),
-              balance_account_id:   ba_id,
-              balance_account_code: ba_code,
-              reference:            pick(norm, *REF_KEYS),
-              transfer_id:          pick(norm, *TRX_ID_KEYS),
-              payout_id:            pick(norm, *PAYOUT_ID_KEYS),
-              description:          pick(norm, *DESC_KEYS),
-              counterparty:         pick(norm, *CP_NAME_KEYS)
-            )
-            created += 1
-
-          rescue => e
-            row_errors << "row=#{i+1}: #{e.class}: #{e.message}"
-            skipped += 1
-            raise ActiveRecord::Rollback if row_errors.size >= ROW_ERROR_ABORT_THRESHOLD
           end
+
+          StatementLine.where(report_file_id: report_file.id).delete_all
+          purge_overlapping_statement_lines(report_file, day_currency_map)
+          rows_buffer.each { |attrs| StatementLine.create!(attrs) }
         end
+
+        created = rows_buffer.size
+      rescue RowAbort
+        aborted = true
+        created = 0
+        rows_buffer.clear
+        distinct_days.clear
+        day_currency_map = Hash.new { |h, k| h[k] = Set.new }
+        currencies.clear
       end
 
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round(1)
@@ -112,18 +130,48 @@ module Parse
       )
       report_file.update!(status: status_symbol, error: nil, settings: settings_payload)
 
-      # rebuild summaries for affected days (best-effort)
-      distinct_days.each do |day|
-        begin
-          Summarize::BuildDailySummaries.call(day: day)
-        rescue => e
-          Rails.logger.error("[Parse::Statement] summary rebuild failed day=#{day} err=#{e.class}: #{e.message}")
+      unless aborted
+        distinct_days.each do |day|
+          begin
+            Summarize::BuildDailySummaries.call(day: day)
+          rescue => e
+            Rails.logger.error("[Parse::Statement] summary rebuild failed day=#{day} err=#{e.class}: #{e.message}")
+          end
         end
       end
 
     rescue => e
       report_file.update_columns(status: ReportFile.statuses[:failed], error: e.message) rescue nil
       raise
+    end
+
+    private_class_method def self.purge_overlapping_statement_lines(report_file, day_currency_map)
+      return if day_currency_map.empty?
+
+      rf_scope = {
+        account_code: report_file.account_code,
+        account_id: report_file.account_id,
+        adyen_credential_id: report_file.adyen_credential_id,
+        kind: ReportFile.kinds[:statement]
+      }
+
+      base = StatementLine.joins(:report_file)
+                          .where(report_files: rf_scope)
+                          .where.not(statement_lines: { report_file_id: report_file.id })
+
+      day_currency_map.each do |day, currencies|
+        scoped = base.where(statement_lines: { book_date: day })
+        values = currencies.to_a
+        non_nil = values.compact
+
+        unless non_nil.empty?
+          scoped.where(statement_lines: { currency: non_nil }).delete_all
+        end
+
+        if values.any?(&:nil?)
+          scoped.where("statement_lines.currency IS NULL OR statement_lines.currency = ''").delete_all
+        end
+      end
     end
 
     # --- helpers ---
