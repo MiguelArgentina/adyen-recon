@@ -1,9 +1,13 @@
 # app/services/reconcile/payouts_from_statements.rb
 module Reconcile
   class PayoutsFromStatements
-    # Rule of thumb: category='bank', type='bankTransfer', status='booked'
+    # Rule of thumb: category='bank', type='banktransfer', status in {booked, received}
+    SUPPORTED_STATUSES = %w[booked received].freeze
+
     def self.call(report_file:)
-      lines = report_file.statement_lines.where(category: "bank", type: "bankTransfer", status: "booked")
+      lines = report_file.statement_lines
+                         .where(category: "bank", type: "banktransfer")
+                         .where("LOWER(COALESCE(statement_lines.status, '')) IN (?)", SUPPORTED_STATUSES)
       lines.find_each do |l|
         Payout.find_or_create_by!(bank_transfer_id: l.transfer_id.presence || l.reference) do |p|
           p.source_report_file_id = report_file.id
