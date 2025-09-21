@@ -12,14 +12,20 @@ module Sources
 
       rf_kind = ReportFile.kinds[Config::KIND_ACCOUNTING]
 
+      account_code, account_holder = Sources::ScopeKey.parse(scope)
+
       base = Config::AccountingEntry
                .joins("INNER JOIN report_files rf ON rf.id = accounting_entries.#{Config::AE_FILE_ID}")
                .where("rf.#{Config::RF_KIND} = ?", rf_kind)
                .yield_self do |rel|
-                 if scope.nil?
-                   rel.where("rf.#{Config::RF_SCOPE} IS NULL")
+                 if account_code.nil? && account_holder.nil?
+                   rel.where("COALESCE(rf.#{Config::RF_SCOPE}, '') = ''")
+                      .where("COALESCE(rf.account_id, '') = ''")
                  else
-                   rel.where("rf.#{Config::RF_SCOPE} = ?", scope)
+                   scoped = rel
+                   scoped = scoped.where("rf.#{Config::RF_SCOPE} = ?", account_code) if account_code
+                   scoped = scoped.where("rf.account_id = ?", account_holder) if account_holder
+                   scoped
                  end
                end
                .where("accounting_entries.#{Config::AE_BOOK_DATE} = ?", date)

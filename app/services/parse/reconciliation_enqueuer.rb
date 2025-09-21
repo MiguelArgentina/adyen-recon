@@ -7,7 +7,7 @@ module Parse
     def enqueue(report_file:, day_currency_map:)
       return if day_currency_map.blank?
 
-      scope = report_file.account_code.presence
+      scope = Sources::ScopeKey.build(report_file.account_code, report_file.account_id)
       seen = Set.new
 
       day_currency_map.each do |day, currencies|

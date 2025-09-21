@@ -3,6 +3,7 @@ module Recon
     # bank_lines: array of {date:, currency:, amount_cents:, ref:}
     def initialize(account_scope:, bank_lines:, date: nil, currency: nil)
       @scope       = account_scope.presence
+      @scope_account_code, @scope_account_holder = Sources::ScopeKey.parse(@scope)
       @bank_lines  = Array(bank_lines)
       @date_filter = date
       @currency_filter = currency
@@ -65,11 +66,7 @@ module Recon
       return { transactions: [], period_start: nil } unless stmt_model
 
       relation = stmt_model.joins("INNER JOIN report_files rf ON rf.id = statement_lines.#{Sources::Config::SL_FILE_ID}")
-      relation = if @scope.nil?
-                   relation.where("COALESCE(rf.#{Sources::Config::RF_SCOPE}, '') = ''")
-                 else
-                   relation.where("rf.#{Sources::Config::RF_SCOPE} = ?", @scope)
-                 end
+      relation = apply_scope_filter(relation, @scope_account_code, @scope_account_holder)
 
       relation = relation.where(<<~SQL, currency, currency)
         (statement_lines.#{Sources::Config::SL_CURRENCY} = ?
@@ -105,16 +102,27 @@ module Recon
       return nil unless payout_model
 
       relation = payout_model.left_joins(:source_report_file)
-      relation = if @scope.nil?
-                   relation.where("COALESCE(report_files.#{Sources::Config::RF_SCOPE}, '') = ''")
-                 else
-                   relation.where("report_files.#{Sources::Config::RF_SCOPE} = ?", @scope)
-                 end
+      relation = apply_scope_filter(relation, @scope_account_code, @scope_account_holder, table_alias: "report_files")
 
       relation = relation.where("COALESCE(payouts.currency, report_files.#{Sources::Config::RF_CURRENCY}) = ?", currency)
       relation = relation.where("payouts.booked_on < ?", payout_date)
 
       relation.order(booked_on: :desc).limit(1).pick(:booked_on)
+    end
+
+    def apply_scope_filter(relation, account_code, account_holder, table_alias: "rf")
+      table = table_alias
+
+      if account_code.nil? && account_holder.nil?
+        relation
+          .where("COALESCE(#{table}.#{Sources::Config::RF_SCOPE}, '') = ''")
+          .where("COALESCE(#{table}.account_id, '') = ''")
+      else
+        scoped = relation
+        scoped = scoped.where("#{table}.#{Sources::Config::RF_SCOPE} = ?", account_code) if account_code
+        scoped = scoped.where("#{table}.account_id = ?", account_holder) if account_holder
+        scoped
+      end
     end
   end
 end

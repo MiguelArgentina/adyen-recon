@@ -10,9 +10,17 @@ module Sources
       C::AccountingEntry
         .joins("INNER JOIN report_files rf ON rf.id = accounting_entries.#{C::AE_FILE_ID}")
         .where("rf.#{C::RF_KIND} = ?", rf_kind)
-        .yield_self { |rel|
-          scope.nil? ? rel.where("rf.#{C::RF_SCOPE} IS NULL") : rel.where("rf.#{C::RF_SCOPE} = ?", scope)
-        }
+        .yield_self do |rel|
+          account_code, account_holder = Sources::ScopeKey.parse(scope)
+          if account_code.nil? && account_holder.nil?
+            rel.where("COALESCE(rf.#{C::RF_SCOPE}, '') = ''").where("COALESCE(rf.account_id, '') = ''")
+          else
+            scoped = rel
+            scoped = scoped.where("rf.#{C::RF_SCOPE} = ?", account_code) if account_code
+            scoped = scoped.where("rf.account_id = ?", account_holder) if account_holder
+            scoped
+          end
+        end
         .where("accounting_entries.#{C::AE_BOOK_DATE} = ?", date)
         .where(<<~SQL, currency, currency)
           (accounting_entries.#{C::AE_CURRENCY} = ?
