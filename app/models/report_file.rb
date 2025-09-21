@@ -126,6 +126,7 @@ class ReportFile < ApplicationRecord
   end
 
   def set_defaults
+    self.account_code = account_code.presence
     self.status ||= :pending
     self.reported_on ||= Date.current
   end
