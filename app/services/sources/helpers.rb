@@ -9,8 +9,17 @@ module Sources
 
     # Scope filter (optional). If scope is nil/blank, skip it.
     def scope_predicate(rf, scope)
-      return Arel::Nodes::SqlLiteral.new("TRUE") if scope.blank?
-      rf[Config::RF_SCOPE].eq(scope)
+      account_code, account_holder = ScopeKey.parse(scope)
+      if account_code.nil? && account_holder.nil?
+        scope_blank = rf[Config::RF_SCOPE].eq(nil).or(rf[Config::RF_SCOPE].eq(""))
+        holder_blank = rf[:account_id].eq(nil).or(rf[:account_id].eq(""))
+        scope_blank.and(holder_blank)
+      else
+        predicates = []
+        predicates << rf[Config::RF_SCOPE].eq(account_code) if account_code
+        predicates << rf[:account_id].eq(account_holder) if account_holder
+        predicates.reduce { |acc, pred| acc.and(pred) } || Arel::Nodes::SqlLiteral.new("TRUE")
+      end
     end
 
     # Prefer line date/currency, else fall back to report_file

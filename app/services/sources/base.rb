@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Sources
   class Base
-    # scope: nil or String (report_files.account_code)
+    # scope: nil or composite String built via Sources::ScopeKey
     # date:  Date
     # currency: "USD" etc.
     # kind: :statement or :accounting
@@ -19,10 +19,16 @@ module Sources
                        )
                        .where("COALESCE(#{table.name}.currency, rf.currency) = ?", currency)
 
-      rel = if scope.nil?
-              rel.where("rf.account_code IS NULL")
+      account_code, account_holder = Sources::ScopeKey.parse(scope)
+
+      rel = if account_code.nil? && account_holder.nil?
+              rel.where("COALESCE(rf.account_code, '') = ''")
+                 .where("COALESCE(rf.account_id, '') = ''")
             else
-              rel.where("rf.account_code = ?", scope)
+              scoped = rel
+              scoped = scoped.where("rf.account_code = ?", account_code) if account_code
+              scoped = scoped.where("rf.account_id = ?", account_holder) if account_holder
+              scoped
             end
 
       if category_filter

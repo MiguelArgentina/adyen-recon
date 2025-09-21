@@ -42,7 +42,8 @@ class ReconciliationsController < ApplicationController
           resolved_currency = resolved_currency&.upcase
           next unless resolved_currency && currency_filter.include?(resolved_currency)
 
-          scope = payout.source_report_file&.account_code.presence
+          source_file = payout.source_report_file
+          scope = Sources::ScopeKey.build(source_file&.account_code, source_file&.account_id)
           payout_combos << [scope, payout.booked_on, resolved_currency]
         end
       end

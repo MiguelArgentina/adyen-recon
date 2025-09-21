@@ -24,8 +24,9 @@ module Recon
                           report_files.#{Sources::Config::RF_REPORTED_ON}
                         ) = ?
                       SQL
-                      .distinct.pluck(Sources::Config::RF_SCOPE)
-                      .map { |scope| scope.presence }
+                      .distinct
+                      .pluck(Sources::Config::RF_SCOPE, "report_files.account_id")
+                      .map { |code, account_id| Sources::ScopeKey.build(code, account_id) }
         end
         if Sources::Config::StatementLine
           scopes |= ReportFile
@@ -37,8 +38,9 @@ module Recon
                           report_files.#{Sources::Config::RF_REPORTED_ON}
                         ) = ?
                       SQL
-                      .distinct.pluck(Sources::Config::RF_SCOPE)
-                      .map { |scope| scope.presence }
+                      .distinct
+                      .pluck(Sources::Config::RF_SCOPE, "report_files.account_id")
+                      .map { |code, account_id| Sources::ScopeKey.build(code, account_id) }
         end
         scopes = scopes.map { |scope| scope.presence }.uniq
         scopes.unshift(nil) unless scopes.include?(nil)  # ← ensure we compute the nil scope

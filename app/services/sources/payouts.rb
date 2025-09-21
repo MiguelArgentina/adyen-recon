@@ -11,11 +11,14 @@ module Sources
 
       relation = model.left_joins(:source_report_file)
 
-      relation = if scope.nil?
-                   relation.where("COALESCE(report_files.account_code, '') = ''")
-                 else
-                   relation.where("report_files.account_code = ?", scope)
-                 end
+      account_code, account_holder = Sources::ScopeKey.parse(scope)
+      if account_code.nil? && account_holder.nil?
+        relation = relation.where("COALESCE(report_files.account_code, '') = ''")
+                             .where("COALESCE(report_files.account_id, '') = ''")
+      else
+        relation = relation.where("report_files.account_code = ?", account_code) if account_code
+        relation = relation.where("report_files.account_id = ?", account_holder) if account_holder
+      end
 
       relation = relation.where(booked_on: date) if date
       if currency.present?
