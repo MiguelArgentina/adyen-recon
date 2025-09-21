@@ -4,9 +4,9 @@ module Recon
     def initialize(account_scope:, bank_lines:, date: nil, currency: nil)
       @scope       = account_scope.presence
       @scope_account_code, @scope_account_holder = Sources::ScopeKey.parse(@scope)
-      @bank_lines  = Array(bank_lines)
+      @bank_lines  = Array(bank_lines).map { |line| normalize_bank_line(line) }.compact
       @date_filter = date
-      @currency_filter = currency
+      @currency_filter = normalize_currency(currency)
     end
 
     def call
@@ -18,7 +18,7 @@ module Recon
       scope_matches.delete_all
 
       adyen_payouts.each do |p|
-        payout_currency = p[:currency] || @currency_filter
+        payout_currency = normalize_currency(p[:currency]) || @currency_filter
         capture_result = capture_transactions_until(payout_date: p[:date], currency: payout_currency)
         transactions = capture_result[:transactions]
 
@@ -60,6 +60,22 @@ module Recon
     end
 
     private
+
+    def normalize_currency(value)
+      str = value.to_s.strip
+      return nil if str.empty?
+
+      str.upcase
+    end
+
+    def normalize_bank_line(line)
+      hash = line.respond_to?(:to_h) ? line.to_h : line
+      return nil unless hash.is_a?(Hash)
+
+      hash = hash.symbolize_keys if hash.respond_to?(:symbolize_keys)
+      hash[:currency] = normalize_currency(hash[:currency])
+      hash
+    end
 
     def capture_transactions_until(payout_date:, currency:)
       stmt_model = Sources::Config::StatementLine
