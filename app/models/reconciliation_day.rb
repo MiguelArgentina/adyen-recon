@@ -3,6 +3,8 @@ class ReconciliationDay < ApplicationRecord
   has_many :reconciliation_variances, dependent: :delete_all
   enum :status, { pending: 0, ok: 1, warn: 2, error: 3 }
 
+  before_validation :normalize_account_scope
+
   validates :date, :currency, presence: true
   validates :date, uniqueness: { scope: %i[account_scope currency] }
 
@@ -19,6 +21,12 @@ class ReconciliationDay < ApplicationRecord
                     :error
                   end
     save!
+  end
+
+  private
+
+  def normalize_account_scope
+    self.account_scope = account_scope.presence
   end
 end
 

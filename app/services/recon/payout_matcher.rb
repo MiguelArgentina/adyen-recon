@@ -2,7 +2,7 @@ module Recon
   class PayoutMatcher
     # bank_lines: array of {date:, currency:, amount_cents:, ref:}
     def initialize(account_scope:, bank_lines:, date: nil, currency: nil)
-      @scope       = account_scope
+      @scope       = account_scope.presence
       @bank_lines  = Array(bank_lines)
       @date_filter = date
       @currency_filter = currency

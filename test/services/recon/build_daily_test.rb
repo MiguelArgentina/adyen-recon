@@ -45,5 +45,40 @@ module Recon
         end
       end
     end
+
+    test "derives nil scope when report file scope is blank" do
+      other_date = @date + 1
+      credential = AdyenCredential.create!(label: "Scope test", auth_method: :password)
+      file = ReportFile.create!(
+        adyen_credential: credential,
+        kind: :statement,
+        reported_on: other_date,
+        currency: @currency,
+        account_code: ""
+      )
+
+      StatementLine.create!(
+        report_file: file,
+        line_no: 1,
+        occurred_on: other_date,
+        book_date: other_date,
+        category: "payment",
+        type: "capture",
+        amount_minor: 1,
+        currency: @currency
+      )
+
+      noop_explainer = Struct.new(:call).new(true)
+      Sources::Statement.stub(:total_for, 0) do
+        Sources::Accounting.stub(:total_for, 0) do
+          Sources::Computed.stub(:total_for, 0) do
+            Recon::ExplainVariance.stub(:new, ->(_) { noop_explainer }) do
+              day = Recon::BuildDaily.new(account_scope: nil, date: other_date, currency: @currency).call
+              assert_nil day.account_scope
+            end
+          end
+        end
+      end
+    end
   end
 end

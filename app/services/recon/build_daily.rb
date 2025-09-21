@@ -2,13 +2,13 @@
 module Recon
   class BuildDaily
     def initialize(account_scope:, date:, currency:)
-      @scope_in = account_scope          # can be nil
+      @scope_in = account_scope.presence # can be nil
       @date     = date
       @currency = currency
     end
 
     def call
-      scopes = Array(@scope_in).presence
+      scopes = Array(@scope_in).map { |scope| scope.presence }.presence
 
       # If no explicit scope, derive from data; include nil as a scope
       if scopes.blank?
@@ -25,6 +25,7 @@ module Recon
                         ) = ?
                       SQL
                       .distinct.pluck(Sources::Config::RF_SCOPE)
+                      .map { |scope| scope.presence }
         end
         if Sources::Config::StatementLine
           scopes |= ReportFile
@@ -37,26 +38,28 @@ module Recon
                         ) = ?
                       SQL
                       .distinct.pluck(Sources::Config::RF_SCOPE)
+                      .map { |scope| scope.presence }
         end
-        scopes = scopes.uniq
+        scopes = scopes.map { |scope| scope.presence }.uniq
         scopes.unshift(nil) unless scopes.include?(nil)  # ← ensure we compute the nil scope
       end
 
       last = nil
       ReconciliationDay.transaction do
         scopes.each do |scope|
-          relation = ReconciliationDay.lock.where(account_scope: scope, date: @date, currency: @currency)
+          normalized_scope = scope.presence
+          relation = ReconciliationDay.lock.where(account_scope: normalized_scope, date: @date, currency: @currency)
           day = relation.order(updated_at: :desc).first
 
           if day
             relation.where.not(id: day.id).destroy_all
           else
-            day = ReconciliationDay.new(account_scope: scope, date: @date, currency: @currency)
+            day = ReconciliationDay.new(account_scope: normalized_scope, date: @date, currency: @currency)
           end
 
-          day.statement_total_cents  = Sources::Statement.total_for(scope, @date, @currency)
-          day.accounting_total_cents = Sources::Accounting.total_for(scope, @date, @currency)
-          day.computed_total_cents   = Sources::Computed.total_for(scope, @date, @currency)
+          day.statement_total_cents  = Sources::Statement.total_for(normalized_scope, @date, @currency)
+          day.accounting_total_cents = Sources::Accounting.total_for(normalized_scope, @date, @currency)
+          day.computed_total_cents   = Sources::Computed.total_for(normalized_scope, @date, @currency)
           day.status = :pending
           day.save!
 
