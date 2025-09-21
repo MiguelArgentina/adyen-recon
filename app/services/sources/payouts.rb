@@ -27,6 +27,8 @@ module Sources
 
       relation.find_each.map do |p|
         resolved_currency = p.currency.presence || p.source_report_file&.currency
+        resolved_currency = resolved_currency&.to_s&.strip
+        resolved_currency = resolved_currency.present? ? resolved_currency.upcase : nil
         {
           id: p.bank_transfer_id.presence || p.payout_ref.presence || "payout-#{p.id}",
           date: p.booked_on,

@@ -105,5 +105,44 @@ module Recon
       assert_equal 30_000, details[:transactions_total_cents]
       assert_equal 30_000, match.adyen_amount_cents.abs
     end
+
+    test "normalizes currencies when matching payouts" do
+      payout_date = Date.new(2025, 8, 5)
+
+      Payout.create!(
+        bank_transfer_id: "CURR-LOW",
+        booked_on: payout_date,
+        currency: "usd",
+        amount_minor: -30_000,
+        payout_ref: "CURR-LOW",
+        source_report_file: @payout_file
+      )
+
+      StatementLine.create!(
+        report_file: @statement_file,
+        line_no: 1,
+        occurred_on: payout_date - 1,
+        book_date: payout_date - 1,
+        category: "payment",
+        type: "capture",
+        amount_minor: 30_000,
+        currency: "USD",
+        reference: "MATCH-LOW"
+      )
+
+      bank_lines = [
+        { date: payout_date, currency: "usd", amount_cents: -30_000, ref: "BANK-LOW" }
+      ]
+
+      Recon::PayoutMatcher.new(account_scope: nil, bank_lines:, date: payout_date, currency: "usd").call
+
+      match = PayoutMatch.find_by!(adyen_payout_id: "CURR-LOW")
+      assert_equal "matched", match.status
+      assert_equal "BANK-LOW", match.bank_ref
+      assert_equal(-30_000, match.bank_amount_cents)
+
+      details = match.details.deep_symbolize_keys
+      assert_equal 30_000, details[:transactions_total_cents]
+    end
   end
 end
