@@ -22,7 +22,11 @@ module Sources
 
       relation = relation.where(booked_on: date) if date
       if currency.present?
-        relation = relation.where("COALESCE(payouts.currency, report_files.currency) = ?", currency)
+        normalized_currency = currency.to_s.strip.upcase
+        relation = relation.where(
+          "UPPER(COALESCE(payouts.currency, report_files.currency)) = ?",
+          normalized_currency
+        )
       end
 
       relation.find_each.map do |p|
