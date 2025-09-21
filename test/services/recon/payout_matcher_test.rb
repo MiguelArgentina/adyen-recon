@@ -144,5 +144,39 @@ module Recon
       details = match.details.deep_symbolize_keys
       assert_equal 30_000, details[:transactions_total_cents]
     end
+
+    test "marks payouts as unmatched when transactions are booked on the payout date" do
+      payout_date = Date.new(2025, 8, 10)
+
+      Payout.create!(
+        bank_transfer_id: "CURR-SAME-DAY",
+        booked_on: payout_date,
+        currency: "USD",
+        amount_minor: -15_000,
+        payout_ref: "CURR-SAME-DAY",
+        source_report_file: @payout_file
+      )
+
+      StatementLine.create!(
+        report_file: @statement_file,
+        line_no: 1,
+        occurred_on: payout_date,
+        book_date: payout_date,
+        category: "payment",
+        type: "capture",
+        amount_minor: 15_000,
+        currency: "USD",
+        reference: "CAPTURE-SAME-DAY"
+      )
+
+      Recon::PayoutMatcher.new(account_scope: nil, bank_lines: [], date: payout_date, currency: "USD").call
+
+      match = PayoutMatch.find_by!(adyen_payout_id: "CURR-SAME-DAY")
+      assert_equal "unmatched", match.status
+
+      details = match.details.deep_symbolize_keys
+      assert_equal [], details[:transactions]
+      assert_equal 0, details[:transactions_total_cents]
+    end
   end
 end
