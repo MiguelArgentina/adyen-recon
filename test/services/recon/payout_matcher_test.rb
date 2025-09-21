@@ -68,12 +68,24 @@ module Recon
         report_file: @statement_file,
         line_no: 3,
         occurred_on: payout_date,
-        book_date: payout_date,
+        book_date: payout_date - 1,
         category: "platformPayment",
         type: "Capture",
         amount_minor: 18_000,
         currency: "USD",
         reference: "MATCH-2"
+      )
+
+      StatementLine.create!(
+        report_file: @statement_file,
+        line_no: 4,
+        occurred_on: payout_date,
+        book_date: payout_date,
+        category: "platformPayment",
+        type: "Capture",
+        amount_minor: 5_000,
+        currency: "USD",
+        reference: "IGNORED-2"
       )
 
       Recon::PayoutMatcher.new(account_scope: nil, bank_lines: [], date: payout_date, currency: "USD").call
@@ -87,6 +99,8 @@ module Recon
       transactions = details[:transactions]
       assert_equal 2, transactions.length
       assert_equal ["MATCH-1", "MATCH-2"], transactions.map { |tx| tx[:reference] }
+      assert_equal [previous_payout_date + 1, payout_date - 1].map(&:to_s),
+                   transactions.map { |tx| tx[:value_date] }
 
       assert_equal 30_000, details[:transactions_total_cents]
       assert_equal 30_000, match.adyen_amount_cents.abs
