@@ -82,7 +82,7 @@ module Recon
 
       previous_date = previous_payout_date(payout_date:, currency:)
 
-      relation = relation.where("statement_lines.#{Sources::Config::SL_BOOK_DATE} <= ?", payout_date)
+      relation = relation.where("statement_lines.#{Sources::Config::SL_BOOK_DATE} < ?", payout_date)
       relation = relation.where("statement_lines.#{Sources::Config::SL_BOOK_DATE} > ?", previous_date) if previous_date
 
       rows = relation.order("statement_lines.#{Sources::Config::SL_BOOK_DATE} ASC, statement_lines.line_no ASC")
@@ -90,6 +90,7 @@ module Recon
 
       transactions = rows.map do |date, reference, amount|
         {
+          value_date: date&.to_s,
           date: date&.to_s,
           reference: reference,
           amount_cents: amount.to_i

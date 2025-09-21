@@ -116,9 +116,9 @@
                     <div class="modal__body">
                       <p class="modal__meta">
                         <% if period_start %>
-                          Captures booked after <span class="font-mono"><%= period_start %></span> and up to <span class="font-mono"><%= period_end %></span>.
+                          Captures booked after <span class="font-mono"><%= period_start %></span> and before <span class="font-mono"><%= period_end %></span>.
                         <% else %>
-                          Captures booked up to <span class="font-mono"><%= period_end %></span>.
+                          Captures booked before <span class="font-mono"><%= period_end %></span>.
                         <% end %>
                       </p>
                       <div class="table-wrap">
@@ -129,7 +129,7 @@
                           <tbody>
                             <% transactions.each do |tx| %>
                               <tr>
-                                <td class="font-mono text-xs"><%= tx[:date] %></td>
+                                <td class="font-mono text-xs"><%= tx[:value_date] || tx[:date] %></td>
                                 <td class="font-mono text-xs"><%= tx[:reference].presence || "—" %></td>
                                 <td class="text-right"><%= number_to_currency(tx[:amount_cents].to_i / 100.0, unit: p.currency) %></td>
                               </tr>
